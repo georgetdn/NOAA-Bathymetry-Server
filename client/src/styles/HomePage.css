@@ -1,0 +1,93 @@
+.home-container {
+    width: 1000px; /* Fixed width */
+    height: auto;
+    min-height: 100vh; /* Ensure full-screen height */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Keep content centered vertically */
+    align-items: center; /* Keep everything inside centered */
+    margin: 0 auto; /* Center the container */
+    padding-top: 70px; /* Prevent menu from overlapping content */
+    
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    overflow-y: hidden; /* Hide the vertical scroll bar */
+}
+
+.blank-space {
+    width: 1000px; /* Fixed width */
+    max-width: 100%; /* Resize when screen is smaller */
+    height: 80px; /* Fixed height */
+    background-color: transparent;
+    position: relative; /* Ensure it stays below the menu */
+    margin-top: 50px; /* Keeps space below the menu */
+}
+
+.header-text {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    text-align: center;
+    background-color: white;
+    color: black;
+    padding: 0px 0;
+    z-index: 1001; /* Ensure the text is above the menu */
+    white-space: nowrap; /* Prevent text from wrapping */
+}
+
+.header-text .large {
+    font-size: 66px; /* Set size of "Y" to 46 */
+    font-weight: bold; /* Make the font bold */
+    font-family: "Times New Roman", Times, serif; /* Change to Times New Roman font */
+    font-style: italic; /* Make the font italic */
+}
+
+.header-text .small {
+    font-size: 36px; /* Set size of "219.com" to 36 */
+}
+
+.content {
+    padding-top: 120px; /* Adjust padding to account for the header text and menu */
+}
+
+/* Responsive: Ensure blank strip resizes when screen is smaller than 1000px */
+@media (max-width: 600px) {
+    .blank-space {
+        width: 100%; /* Shrinks to fit smaller screens */
+        height: 80px; /* Height remains fixed */
+    }
+}
+
+/* Media query for smartphones */
+@media (max-width: 600px) {
+    .header-text .large {
+        font-size: 36px; /* Smaller size for "Y" */
+    }
+
+    .header-text .small {
+        font-size: 24px; /* Smaller size for "219.com" */
+    }
+
+    .center span {
+        font-size: 18px; /* Smaller size for menu items */
+    }
+}
+/* Default styling: Show hyphen on large screens */
+.line-break {
+    display: inline;
+}
+
+/* On small screens, remove the hyphen and enforce line break */
+@media (max-width: 600px) {
+    .line-break {
+        display: block;
+        content: "";
+        white-space: pre; /* Ensures the line break occurs */
+    }
+}

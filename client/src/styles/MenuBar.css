@@ -1,0 +1,65 @@
+.menu-bar {
+    width: 100%; /* Set the width to 100% */
+    height: 50px; /* Menu height */
+    background-color: white;
+    color: rgb(39, 38, 38);
+    display: flex;
+    justify-content: center; /* Center the menu items horizontally */
+    align-items: center;
+    padding: 0px;
+    position: fixed; /* Fix the menu bar at the top */
+    top: 85px; /* Position below the header text */
+    left: 0;
+    right: 0;
+    z-index: 1000; /* Ensure the menu bar is on top of other elements */
+}
+
+/* Responsive Design: If screen is smaller than 1000px, make menu width 100% */
+@media (max-width: 1000px) {
+    .menu-bar {
+        width: 100%; /* Shrinks to fit screen */
+    }
+}
+
+.center {
+    display: flex;
+    gap: 55px; /* Set space between menu options to 15px */
+    justify-content: center; /* Center the menu items horizontally */
+}
+
+.center span {
+    cursor: pointer;
+    font-size: 22px; /* Increase the font size by 2px */
+}
+
+.center span:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+    .center {
+        gap: 15px; /* Apply uniform spacing between all menu items */
+        justify-content: center;
+    }
+}
+
+/* Media query for smartphones */
+@media (max-width: 600px) {
+    .center {
+        display: flex;
+        justify-content: center; /* Ensure perfect centering */
+        gap: 10px; /* Reduce spacing */
+        flex-wrap: wrap; /* Allow items to wrap */
+        width: 100%; /* Ensure full width */
+    }
+
+    .menu-bar {
+        min-width: 100%; /* Ensure it spans the full width */
+        max-width: 100%;
+        display: flex;
+        justify-content: center; /* Keep items centered */
+        align-items: center;
+        padding: 0; /* Remove any extra padding */
+    }
+}
+
