@@ -1,0 +1,197 @@
+.page-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    background-color: #f9f9f9;
+    padding-top: 85px; /* Ensure content is below the menu */
+    text-align: center; /* Centers everything inside */
+}
+
+/* Header Styling */
+.header-text {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    background-color: white;
+    color: #2C3E50;
+    font-size: 24px;
+    font-weight: bold;
+    padding: 5px 0;
+    z-index: 1001;
+    font-family: "Arial", sans-serif;
+}
+
+/* Ensures content is positioned right below the menu */
+.page-content {
+    margin-top: 30px; /* Space below the menu */
+    width: 50vw;
+    max-width: 800px;
+    text-align: center; /* Ensures everything is centered */
+}
+
+/* Style for text content */
+.page-content h2 {
+    font-size: 22px;
+    color: #333;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+/* Justify paragraph text to center */
+.page-content p {
+    text-align: center;
+    width: 100%;
+}
+
+/* Services list styling */
+.services-list {
+    text-align: center; /* Ensures text is center-justified */
+    margin-top: 10px;
+    padding: 0;
+    list-style-type: none;
+    width: 100%;
+}
+
+.services-list li {
+    margin-bottom: 8px;
+    font-size: 16px;
+    color: #333;
+    text-align: center; /* Forces center justification */
+}
+
+.services-list strong {
+    color: #2C3E50; /* Highlight service names */
+}
+
+/* Center all pages (Login, Services, Contact) */
+.contact-content, .login-content, .services-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center; /* Ensures all elements inside are centered */
+    margin-top: 30px;
+    width: 100%;
+}
+
+/* Ensure contact details are centered */
+.contact-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 20px; /* Add spacing */
+}
+
+/* Center each contact line */
+.contact-line {
+    font-size: 16px;
+    color: #333;
+    text-align: center !important; /* Override inherited styles */
+    width: 100%;
+    margin: 10px 0; /* Space between lines */
+}
+
+/* Center everything inside login and services page */
+.login-content, .services-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto; /* Forces centering */
+}
+
+/* Center the form groups */
+.contact-content .form-group,
+.login-content .form-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centers labels and inputs */
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Center labels */
+.contact-content .form-group label,
+.login-content .form-group label {
+    font-weight: bold;
+    text-align: center; /* Ensures labels are centered */
+    margin-bottom: 5px;
+    width: 100%;
+}
+
+/* Center input fields */
+.contact-content .form-group input,
+.contact-content .form-group textarea,
+.login-content .form-group input {
+    width: 100%;
+    max-width: 300px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    text-align: center; /* Centers text inside input */
+}
+
+/* Make the message box wider */
+.message-box {
+    width: 100%;
+    max-width: 500px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* Center the submit/login button */
+.contact-content button,
+.login-content button {
+    width: 100%;
+    max-width: 300px;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    background-color: #2C3E50; /* Use a neutral color */
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.contact-content button:hover,
+.login-content button:hover {
+    background-color: #1A237E; /* Slightly darker shade */
+}
+
+/* Fix Login Button Width */
+button {
+    width: 250px;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    background-color: #FF6F61;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    display: block;
+    margin: 10px auto; /* Centers button */
+}
+
+button:hover {
+    background-color: #e55b50;
+}
+
+/* Error message styling */
+.error-message {
+    color: red;
+    font-size: 14px;
+    text-align: center;
+    margin-top: 10px;
+}

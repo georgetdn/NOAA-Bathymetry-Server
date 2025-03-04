@@ -1,19 +1,16 @@
-import React, { useEffect } from "react";
+import React from "react";
+import { Link } from "react-router-dom";
 import "../styles/MenuBar.css";
 
 const MenuBar = () => {
-    useEffect(() => {
-        console.log("✅ MenuBar component loaded!");
-    }, []);
-
     return (
         <nav className="menu-bar">
-            <div className="center">
-                <span>Home</span>
-                <span>Services</span>
-                <span>Contact</span>
-                <span>Login</span>
-            </div>
+            <ul className="center">
+                <li><Link to="/">Home</Link></li>
+                <li><Link to="/services">Services</Link></li>
+                <li><Link to="/contact">Contact</Link></li>
+                <li><Link to="/login">Login</Link></li>
+            </ul>
         </nav>
     );
 };

@@ -1,19 +1,20 @@
 .menu-bar {
-    width: 100%; /* Set the width to 100% */
-    height: 50px; /* Menu height */
+    width: 100%;
+    height: 40px;
     background-color: white;
     color: rgb(39, 38, 38);
     display: flex;
-    justify-content: center; /* Center the menu items horizontally */
+    justify-content: center;
     align-items: center;
-    padding: 0px;
-    position: fixed; /* Fix the menu bar at the top */
-    top: 85px; /* Position below the header text */
+    padding: 0;
+    position: fixed;
+    top: 35px; /* Decrease space between header and menu */
     left: 0;
     right: 0;
-    z-index: 1000; /* Ensure the menu bar is on top of other elements */
+    z-index: 1000;
+    font-family: "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, sans-serif; /* Font stack */
+    font-size: 14px;
 }
-
 /* Responsive Design: If screen is smaller than 1000px, make menu width 100% */
 @media (max-width: 1000px) {
     .menu-bar {
@@ -23,13 +24,13 @@
 
 .center {
     display: flex;
-    gap: 55px; /* Set space between menu options to 15px */
+    gap: 40px; /* Set space between menu options to 15px */
     justify-content: center; /* Center the menu items horizontally */
 }
 
 .center span {
     cursor: pointer;
-    font-size: 22px; /* Increase the font size by 2px */
+    font-size: 14px; /* Increase the font size by 2px */
 }
 
 .center span:hover {
@@ -63,3 +64,29 @@
     }
 }
 
+.menu-bar li {
+    list-style: none;
+}
+
+.menu-bar a {
+    text-decoration: none;
+    color: rgb(39, 38, 38);
+    font-weight: 300; /* Ensure thinner font */
+    transition: color 0.3s ease;
+}
+
+.menu-bar a:hover {
+    color: #FF6F61; /* Highlight on hover */
+}
+.menu-bar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: 25px; /* Normal spacing between menu items */
+}
+
+/* Double the gap between "Contact" and "Login" */
+.menu-bar ul li:nth-child(3) {
+    margin-right: 50px; /* Doubles the normal gap after "Contact" */
+}

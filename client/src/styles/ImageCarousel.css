@@ -1,0 +1,64 @@
+.carousel-container {
+    position: fixed;
+    top: 185px;
+    left: 0;
+    width: 100vw;
+    height: 500px; /* Increase the height to 500px */
+    overflow: hidden;
+    background-color: black;
+    z-index: 999;
+}
+
+.carousel-text-container {
+    position: absolute;
+    top: 10%; /* Adjusts text to appear below the header */
+    left: 33%; /* Aligns text with the header */
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Different styles for each text line */
+.carousel-text {
+    margin: 5px 0;
+    color: white;
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
+}
+
+.line1 {
+    font-size: 48px;
+    font-family: "Arial", sans-serif;
+    font-weight: bold;
+}
+
+.line2 {
+    font-size: 36px;
+    font-family: "Georgia", serif;
+    font-style: italic;
+}
+
+.line3 {
+    font-size: 36px;
+    font-family: "Georgia", serif;
+    font-style: italic;
+}
+
+.carousel-images {
+    display: flex;
+    transition: transform 1s ease-in-out;
+    width: calc(100vw * 5);
+}
+
+.carousel-slide {
+    position: relative;
+    width: 100vw;
+    height: 500px; /* Ensure the slide container matches the new height */
+}
+
+.carousel-slide img {
+    width: 100vw;
+    height: 500px; /* Ensure images match the new height */
+    object-fit: cover;
+    flex-shrink: 0;
+    display: block;
+}

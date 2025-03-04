@@ -1,26 +1,25 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import MenuBar from "./MenuBar";
+import ImageCarousel from "./ImageCarousel";
 import "../styles/HomePage.css";
 
 const HomePage = () => {
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
-
-    useEffect(() => {
-        const handleResize = () => {
-            setIsMobile(window.innerWidth <= 600);
-        };
-        window.addEventListener("resize", handleResize);
-        return () => window.removeEventListener("resize", handleResize);
-    }, []);
-
     return (
         <div className="home-container">
             <div className="header-text">
-                <span className="large">Y</span><span className="small">219.com</span>
-                {isMobile ? <br /> : <span className="line-break"> - </span>}
+                <span className="large">Y</span><span className="small">219.com</span><br/>
                 <span className="small">Quality, Affordable IT Services</span>
             </div>
             <MenuBar />
+            <ImageCarousel />
+            
+            {/* Ensure there's space below the carousel */}
+            <div className="spacer"></div>
+
+            {/* Copyright Notice */}
+            <footer className="copyright">
+                © {new Date().getFullYear()} Y219.com. All Rights Reserved.
+            </footer>
         </div>
     );
 };
