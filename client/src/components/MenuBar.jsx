@@ -1,11 +1,20 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import "../styles/MenuBar.css";
 
 const MenuBar = () => {
+    const [menuOpen, setMenuOpen] = useState(false);
+
+    const toggleMenu = () => {
+        setMenuOpen(!menuOpen);
+    };
+
     return (
         <nav className="menu-bar">
-            <ul className="center">
+            <div className="menu-icon" onClick={toggleMenu}>
+                &#9776;
+            </div>
+            <ul className={`menu-items ${menuOpen ? 'show' : ''}`}>
                 <li><Link to="/">Home</Link></li>
                 <li><Link to="/services">Services</Link></li>
                 <li><Link to="/contact">Contact</Link></li>

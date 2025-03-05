@@ -3,11 +3,15 @@
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    min-height: 100vh;
-    background-color: #f9f9f9;
-    padding-top: 85px; /* Ensure content is below the menu */
-    text-align: center; /* Centers everything inside */
+   /* min-height: 100vh;*/
+    background-color: white;
+    padding-top: 20px; /* Ensure content starts below header */
+    text-align: center;
+    width: 100%;
+    height: auto; /* Allow page to expand */
+    overflow-y: auto; /* Enable scrolling */
 }
+
 
 /* Header Styling */
 .header-text {
@@ -16,20 +20,33 @@
     left: 50%;
     transform: translateX(-50%);
     text-align: center;
-    background-color: white;
-    color: #2C3E50;
+    background:  rgb(218, 245, 238);
+    background-size: cover; /* Ensure it covers the full header */
+    color: rgb(43, 4, 114)!important;
     font-size: 24px;
     font-weight: bold;
-    padding: 5px 0;
+    padding: 10px 0;
     z-index: 1001;
-    font-family: "Arial", sans-serif;
+    font-family: 'Times New Roman', serif !important; /* Set header text to Times New Roman */
+    width: 100%;
+    height: 65px; /* Set a fixed height for better visibility */
+}
+
+
+.large {
+       font-size: 36px !important; /* Set large text size */
+       font-style: italic !important; /* Make text italic */
+}
+
+.small {
+    font-size: 26px !important; /* Set small text size */
 }
 
 /* Ensures content is positioned right below the menu */
 .page-content {
-    margin-top: 30px; /* Space below the menu */
+    margin-top: 130px; /* Space below the menu */
     width: 50vw;
-    max-width: 800px;
+    max-width: 1800px;
     text-align: center; /* Ensures everything is centered */
 }
 
@@ -49,8 +66,8 @@
 
 /* Services list styling */
 .services-list {
-    text-align: center; /* Ensures text is center-justified */
-    margin-top: 10px;
+    text-align: left; /* Ensures text is center-justified */
+    margin-top: 20px;
     padding: 0;
     list-style-type: none;
     width: 100%;
@@ -60,23 +77,14 @@
     margin-bottom: 8px;
     font-size: 16px;
     color: #333;
-    text-align: center; /* Forces center justification */
+    text-align: left; /* Forces center justification */
 }
 
 .services-list strong {
     color: #2C3E50; /* Highlight service names */
 }
 
-/* Center all pages (Login, Services, Contact) */
-.contact-content, .login-content, .services-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center; /* Ensures all elements inside are centered */
-    margin-top: 30px;
-    width: 100%;
-}
+
 
 /* Ensure contact details are centered */
 .contact-info {
@@ -99,7 +107,7 @@
 }
 
 /* Center everything inside login and services page */
-.login-content, .services-content {
+.login-content {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -108,6 +116,33 @@
     width: 100%;
     max-width: 400px;
     margin: 0 auto; /* Forces centering */
+    margin-top: 20px;
+}
+.services-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: left;
+    text-align: left;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    margin-top: 20px; /* Reduce margin so content stays in view */
+    padding-bottom: 50px; /* Prevents content from being cut off */
+    overflow-y: visible; /* Ensures text is fully displayed */
+}
+
+
+
+/* Center all pages (Login, Services, Contact) */
+.contact-content{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center; /* Ensures all elements inside are centered */
+    margin-top: 20px;
+    position: relative;
+    width: 100%;
 }
 
 /* Center the form groups */
@@ -194,4 +229,34 @@ button:hover {
     font-size: 14px;
     text-align: center;
     margin-top: 10px;
+}
+input, textarea {
+    background-color: white !important;
+    color: black !important;
+    border: 1px solid #ccc;
+    padding: 8px;
+    font-size: 16px;
+}
+/* Apply background only to the homepage and cover the full width */
+.home-container {
+    background: rgb(218, 245, 238) !important;
+    min-height: 100vh; /* Ensures it covers the full viewport height */
+    width: 100vw; /* Covers the full width of the viewport */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+
+
+
+.content {
+    flex: 1; /* Pushes footer to the bottom */
+}
+
+.copyright {
+    text-align: center;
+    padding: 10px;
+    color: black;
 }

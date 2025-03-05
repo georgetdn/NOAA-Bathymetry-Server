@@ -8,15 +8,18 @@ const images = [
     "/images/image2.jpg",
     "/images/image3.jpg",
     "/images/image4.jpg",
-    "/images/image5.jpg", // New image
-    "/images/image6.jpg", // New image
+    "/images/image5.jpg",
+    "/images/image6.jpg",
+    "/images/image7.jpg",
+    "/images/image8.jpg",
+    "/images/image9.jpg",
 ];
 
 const textData = [
     {
         line1: "Welcome to Y219.com!",
         line2: "Quality, Affordable IT Services",
-        line3: "Small Business and home!",
+        line3: "Small business and home!",
     },
     {
         line1: "Custom IT Solutions",
@@ -43,6 +46,22 @@ const textData = [
         line2: "Strategic IT Planning",
         line3: "Optimize your operations for success",
     },
+    {
+        line1: "Custom Software",
+        line2: "Designed for Your Needs",
+        line3: "Programming based on your specifications",
+    },
+    {
+        line1: "Network Expretise",
+        line2: "Design and Maintenance",
+        line3: "Home or small business networks",
+    },
+    {
+        line1: "Accountgin Software",
+        line2: "Instalation and Setup",
+        line3: "Custom extensions",
+    }
+
 ];
 
 const ImageCarousel = () => {
@@ -60,7 +79,7 @@ const ImageCarousel = () => {
             } else {
                 setCurrentIndex((prevIndex) => prevIndex + 1);
             }
-        }, 3000);
+        }, 5000);
 
         return () => clearInterval(interval);
     }, [currentIndex]);

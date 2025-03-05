@@ -1,7 +1,6 @@
 import React from "react";
 import MenuBar from "./MenuBar";
 import ImageCarousel from "./ImageCarousel";
-import "../styles/HomePage.css";
 
 const HomePage = () => {
     return (
@@ -11,12 +10,13 @@ const HomePage = () => {
                 <span className="small">Quality, Affordable IT Services</span>
             </div>
             <MenuBar />
-            <ImageCarousel />
             
-            {/* Ensure there's space below the carousel */}
-            <div className="spacer"></div>
+            {/* Main Content */}
+            <div className="content">
+                <ImageCarousel />
+            </div>
 
-            {/* Copyright Notice */}
+            {/* Footer */}
             <footer className="copyright">
                 © {new Date().getFullYear()} Y219.com. All Rights Reserved.
             </footer>
@@ -25,3 +25,4 @@ const HomePage = () => {
 };
 
 export default HomePage;
+

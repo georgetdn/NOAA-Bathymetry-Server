@@ -1,30 +1,26 @@
 .menu-bar {
     width: 100%;
-    height: 40px;
-    background-color: white;
-    color: rgb(39, 38, 38);
+    height: 90px; 
+    background:  rgb(218, 245, 238);
+    background-size: cover; /* Cover the full menu bar */
+    color: white !important;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 0;
+    /*padding: 40px;*/ 
     position: fixed;
-    top: 35px; /* Decrease space between header and menu */
+    top: 80px; /* Ensure it stays below the header */
     left: 0;
     right: 0;
     z-index: 1000;
-    font-family: "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, sans-serif; /* Font stack */
-    font-size: 14px;
+    font-family: 'Corbel Light', sans-serif; /* Set menu font to Corbel Light */
 }
-/* Responsive Design: If screen is smaller than 1000px, make menu width 100% */
-@media (max-width: 1000px) {
-    .menu-bar {
-        width: 100%; /* Shrinks to fit screen */
-    }
-}
+
+
 
 .center {
     display: flex;
-    gap: 40px; /* Set space between menu options to 15px */
+    gap: 30px; /* Set space between menu options to 15px */
     justify-content: center; /* Center the menu items horizontally */
 }
 
@@ -37,56 +33,61 @@
     text-decoration: underline;
 }
 
-@media (max-width: 600px) {
-    .center {
-        gap: 15px; /* Apply uniform spacing between all menu items */
-        justify-content: center;
-    }
-}
-
-/* Media query for smartphones */
-@media (max-width: 600px) {
-    .center {
-        display: flex;
-        justify-content: center; /* Ensure perfect centering */
-        gap: 10px; /* Reduce spacing */
-        flex-wrap: wrap; /* Allow items to wrap */
-        width: 100%; /* Ensure full width */
-    }
-
-    .menu-bar {
-        min-width: 100%; /* Ensure it spans the full width */
-        max-width: 100%;
-        display: flex;
-        justify-content: center; /* Keep items centered */
-        align-items: center;
-        padding: 0; /* Remove any extra padding */
-    }
-}
 
 .menu-bar li {
     list-style: none;
 }
 
 .menu-bar a {
+    font-size: 26px !important; /* Increase font size */
+    color: rgb(201, 26, 13) !important; /* Change text color to red */
+    /*font-weight: bold; /* Make text bold */
     text-decoration: none;
-    color: rgb(39, 38, 38);
-    font-weight: 300; /* Ensure thinner font */
-    transition: color 0.3s ease;
+    padding: 12px; /* Increase touch area */
+    font-family: 'Corbel Light', sans-serif; /* Apply Corbel Light to menu links */
 }
 
+
 .menu-bar a:hover {
-    color: #FF6F61; /* Highlight on hover */
+    text-decoration: underline; /* Underline text on hover */
+    background: none !important; /* Prevent background from turning blank */
 }
 .menu-bar ul {
     list-style: none;
     padding: 0;
     margin: 0;
     display: flex;
-    gap: 25px; /* Normal spacing between menu items */
+    gap: 32px; /* Normal spacing between menu items */
 }
 
-/* Double the gap between "Contact" and "Login" */
-.menu-bar ul li:nth-child(3) {
-    margin-right: 50px; /* Doubles the normal gap after "Contact" */
+ 
+.menu-icon {
+    display: none;
+    cursor: pointer;
+    font-size: 24px;
+    padding: 10px;
+}
+  
+.menu-items {
+    display: flex;
+    list-style: none;
+    gap: 24px;
+}
+  
+ .menu-items.show {
+    display: block;
+ }
+  
+ .menu-items li {
+    text-align: center;
+ }
+  
+ .menu-items a {
+    text-decoration: none;
+    font-size: 24px;
+    padding: 14px;
+ }
+  
+.menu-items a:hover {
+    background-color: #f9f9f9;
 }
