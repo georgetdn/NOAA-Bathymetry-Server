@@ -23,11 +23,10 @@
     background:  rgb(218, 245, 238);
     background-size: cover; /* Ensure it covers the full header */
     color: rgb(43, 4, 114)!important;
-    font-size: 24px;
-    font-weight: bold;
+    font-size: 26px;
     padding: 10px 0;
     z-index: 1001;
-    font-family: 'Times New Roman', serif !important; /* Set header text to Times New Roman */
+    font-family: 'Corbel Light', sans-serif, Arial !important;
     width: 100%;
     height: 65px; /* Set a fixed height for better visibility */
 }
@@ -36,6 +35,7 @@
 .large {
        font-size: 36px !important; /* Set large text size */
        font-style: italic !important; /* Make text italic */
+       font-weight: bold;
 }
 
 .small {
@@ -45,8 +45,8 @@
 /* Ensures content is positioned right below the menu */
 .page-content {
     margin-top: 130px; /* Space below the menu */
-    width: 50vw;
-    max-width: 1800px;
+    width: 70vw;
+    max-width: 2200px;
     text-align: center; /* Ensures everything is centered */
 }
 
@@ -60,8 +60,16 @@
 
 /* Justify paragraph text to center */
 .page-content p {
-    text-align: center;
+    text-align: left;
+    font-family: 'Corbel Light', sans-serif, Arial !important;
+    font-size: 26px;
     width: 100%;
+}
+p {
+    text-align: left !important;
+    font-family: 'Corbel Light', sans-serif, Arial !important;
+    font-size: 26px !important;
+    color: #333 !important;
 }
 
 /* Services list styling */
@@ -71,13 +79,16 @@
     padding: 0;
     list-style-type: none;
     width: 100%;
+    max-width: 90%; /* Increase list width */
+    margin: 0 auto; /* Center the list */
 }
 
 .services-list li {
     margin-bottom: 8px;
-    font-size: 16px;
+    font-size: 26px;
     color: #333;
     text-align: left; /* Forces center justification */
+    display: block;
 }
 
 .services-list strong {
@@ -114,22 +125,11 @@
     justify-content: center;
     text-align: center;
     width: 100%;
-    max-width: 400px;
+    max-width: 600px;
     margin: 0 auto; /* Forces centering */
     margin-top: 20px;
 }
-.services-content {
-    display: flex;
-    flex-direction: column;
-    justify-content: left;
-    text-align: left;
-    width: 100%;
-    max-width: 1000px;
-    margin: 0 auto;
-    margin-top: 20px; /* Reduce margin so content stays in view */
-    padding-bottom: 50px; /* Prevents content from being cut off */
-    overflow-y: visible; /* Ensures text is fully displayed */
-}
+
 
 
 
@@ -246,10 +246,6 @@ input, textarea {
     flex-direction: column;
     align-items: center;
 }
-
-
-
-
 
 .content {
     flex: 1; /* Pushes footer to the bottom */

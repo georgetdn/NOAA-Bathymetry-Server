@@ -7,41 +7,47 @@
     overflow: hidden;
     background-color: black;
     z-index: 999;
-    margin-top: 60px !important; /* Moves the carousel down */
+    margin-top: 0px !important; /* Moves the carousel down */
 }
 
 .carousel-text-container {
     position: absolute;
     top: 10%; /* Adjusts text to appear below the header */
     left: 33%; /* Aligns text with the header */
-    text-align: left;
+    text-align: center !important;
     display: flex;
     flex-direction: column;
 }
 
 /* Different styles for each text line */
+
 .carousel-text {
     margin: 5px 0;
-    color: white;
+    color: white !important;;
     text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
+    text-align: center !important;
 }
 
 .line1 {
-    font-size: 48px;
+    font-size: 48px!important;
     font-family: "Arial", sans-serif;
+
     font-weight: bold;
+    color: white !important;
 }
 
 .line2 {
-    font-size: 36px;
+    font-size: 36px !important;
     font-family: "Georgia", serif;
     font-style: italic;
+    color: white  !important;;
 }
 
 .line3 {
-    font-size: 36px;
+    font-size: 36px !important;
     font-family: "Georgia", serif;
     font-style: italic;
+    color: white !important;
 }
 
 .carousel-images {

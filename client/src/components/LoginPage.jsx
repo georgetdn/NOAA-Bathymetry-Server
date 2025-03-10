@@ -13,7 +13,7 @@ const LoginPage = () => {
     return (
         <PageLayout>
             <div className="login-content">
-                <h2>Login to Your Account</h2>
+                <h2>Members Login</h2>
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
                         <label>Email:</label>
@@ -37,6 +37,7 @@ const LoginPage = () => {
 
                     <button type="submit">Login</button>
                 </form>
+                <p>If necessary we setup costuner accounts</p>
             </div>
         </PageLayout>
     );
