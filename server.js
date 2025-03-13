@@ -42,13 +42,21 @@ app.post("/send-email", async (req, res) => {
         text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`,
     };
 
+    const confirmationMailOptions = {
+        from: "georged@y219.com",
+        to: email,
+        subject: "We have received your message",
+        text: `Dear ${name},\n\nThank you for reaching out to us. We have received your message and will get back to you shortly.\n\nBest regards,\nY219.com Team`,
+    };
+
     try {
-        const info = await transporter.sendMail(mailOptions);
-        console.log("Email sent:", info.response);
-        res.status(200).json({ message: "Email sent successfully" });
+        await transporter.sendMail(mailOptions);
+        await transporter.sendMail(confirmationMailOptions);
+        console.log("Emails sent successfully");
+        res.status(200).json({ message: "Emails sent successfully" });
     } catch (error) {
-        console.error("Error sending email:", error);
-        res.status(500).json({ message: "Error sending email" });
+        console.error("Error sending emails:", error);
+        res.status(500).json({ message: "Error sending emails" });
     }
 });
 
