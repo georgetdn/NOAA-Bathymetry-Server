@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import "../styles/ImageCarousel.css";
 
-console.log("✅ ImageCarousel component loaded");
+window.onload = function() {
+    console.log("✅ ImageCarousel component loaded");
+};
 
 const images = [
     "/images/image1.jpg",

@@ -1,15 +1,55 @@
 const express = require("express");
 const path = require("path");
 const cors = require("cors");
+const nodemailer = require("nodemailer");
+require("dotenv").config();
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`);
+    next();
+});
+
 // ✅ API route (MUST be BEFORE serving React)
 app.get("/api", (req, res) => {
     res.json({ message: "Hello from Express API!" });
+});
+
+// ✅ Email sending route
+app.post("/send-email", async (req, res) => {
+    const { name, email, message } = req.body;
+
+    console.log("Received email request:", { name, email, message });
+
+    const transporter = nodemailer.createTransport({
+        host: "mail.y219.com",
+        port: 587,
+        secure: false,
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+        },
+    });
+
+    const mailOptions = {
+        from: "georged@y219.com",
+        to: "info@y219.com",
+        subject: `Contact form submission from ${name}`,
+        text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`,
+    };
+
+    try {
+        const info = await transporter.sendMail(mailOptions);
+        console.log("Email sent:", info.response);
+        res.status(200).json({ message: "Email sent successfully" });
+    } catch (error) {
+        console.error("Error sending email:", error);
+        res.status(500).json({ message: "Error sending email" });
+    }
 });
 
 // ✅ Serve React frontend

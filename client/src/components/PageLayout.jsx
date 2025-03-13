@@ -4,7 +4,7 @@ import "../styles/PageLayout.css";
 
 const PageLayout = ({ children }) => {
     return (
-        <div className="page-container">
+        <div className="page-container border-lines">
             {/* Header */}
             <div className="header-text">
                 <span className="large">Y</span><span className="small">219.com</span><br/>
