@@ -36,17 +36,17 @@ app.post("/send-email", async (req, res) => {
     });
 
     const mailOptions = {
-        from: "georged@y219.com",
+        from: "info@y219.com",
         to: "info@y219.com",
         subject: `Contact form submission from ${name}`,
         text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`,
     };
 
     const confirmationMailOptions = {
-        from: "georged@y219.com",
+        from: "info@y219.com",
         to: email,
         subject: "We have received your message",
-        text: `Dear ${name},\n\nThank you for reaching out to us. We have received your message and will get back to you shortly.\n\nBest regards,\nY219.com Team`,
+        text: `Dear ${name},\n\nThank you for reaching out to us. We have received your message and will get back to you shortly.\n\nBest regards,\nY219.com Team\n`,
     };
 
     try {
