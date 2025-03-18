@@ -9,7 +9,7 @@
     width: 100%;
     height: auto; /* Allow page to expand */
     overflow-y: auto; /* Enable scrolling */
-    background-color:  rgb(218 245 238);
+    background-color:  rgb(250, 253, 252);
     position: relative;
     overflow: hidden;
 }
@@ -51,33 +51,28 @@
     left: 50%;
     transform: translateX(-50%);
     text-align: center;
-    color: darkblue !important; ;
+    color: white!important; ;
     font-size: 24px;
-    font-weight: bold;
     padding: 1px 0;
     z-index: 1001;
+    background-image:  url('/images/image11.jpg');
     margin-bottom: 20px; /* Increase distance between header and menu */
-    background-color:  rgb(218 245 238);
+   
 }
-
 .header-text .large {
     font-size: 36px; /* Set size of "Y" to 46 */
     font-weight: bold; /* Make the font bold */
     font-family: "Times New Roman", Times, serif; /* Change to Times New Roman font */
     font-style: italic; /* Make the font italic */
-    background-color:   rgb(218 245 238);
-    color: black;
-}
+    font-weight: bold;
+ }
 
 .header-text .small {
-    font-size: 24px; /* Set size of "219.com" to 36 */
-    font-family: "Helvetica Neue Light"; /* Change to Times New Roman font */
-    background-color:   rgb(218 245 238);
-    color: black;
+    font-family: 'Corbel Light', sans-serif;
 }
 
 .page-content h2 {
-    font-size: 22px;
+    font-size: 24px;
     color: #333;
     margin-bottom: 10px;
     text-align: center;
@@ -93,6 +88,7 @@
 .services-list {
     text-align: left; /* Ensures text is center-justified */
     margin-top: 10px;
+    font-size: 24px;
     padding: 0;
     list-style-type: none;
     width: 100%;
@@ -117,16 +113,20 @@
     justify-content: center;
     text-align: center;
     width: 100%;
-    margin-bottom: 20px; /* Add spacing */
+    font-size: 22px;
+    margin-bottom: 5px; /* Add spacing */
+    line-height: 0.2; /* Adjust to reduce spacing */
 }
 
 /* Center each contact line */
 .contact-line {
-    font-size: 16px;
+    font-size: 12px;
     color: #333;
     text-align: center !important; /* Override inherited styles */
     width: 100%;
-    margin: 10px 0; /* Space between lines */
+    margin: 5px 0; /* Space between lines */
+    margin-bottom: 5px; /* Add spacing */
+    line-height: 0.2; /* Adjust to reduce spacing */
 }
 
 /* Center everything inside login and services page */
@@ -164,7 +164,7 @@
     align-items: center;
     justify-content: center;
     text-align: center; /* Ensures all elements inside are centered */
-    margin-top: 20px;
+    margin-top: 24px;
     position: relative;
     width: 100%;
 }
@@ -220,7 +220,7 @@ button {
     border-radius: 4px;
     background-color: #FF6F61;
     color: white;
-    font-size: 16px;
+    font-size: 22px;
     cursor: pointer;
     display: block;
     margin: 10px auto; /* Centers button */
@@ -240,7 +240,7 @@ button:hover {
     border-radius: 4px;
     background-color: #2C3E50; /* Use a neutral color */
     color: white;
-    font-size: 16px;
+    font-size: 22px;
     cursor: pointer;
     margin-top: 10px;
 }

@@ -53,9 +53,10 @@ const ContactPage = () => {
 
                 {/* Contact Details */}
                 <div className="contact-info">
-                    <p>Call us at <strong><a href="tel:7035687739">703-568-7739</a></strong></p>
-                    <p>Email us at <a href="mailto:info@y219.com">info@y219.com</a></p>
+                    <p>Call us at   <strong><a href="tel:7035687739">703-568-7739 </a></strong>
+                    - Email us at <a href="mailto:info@y219.com">info@y219.com</a>
                     <p>Or fill out the form below.</p>
+                </p>
                 </div>
 
                 {/* Contact Form */}
@@ -102,6 +103,7 @@ const ContactPage = () => {
                 {/* Display status messages */}
                 {status && <p className="status-message">{status}</p>}
             </div>
+            <img src="/images/image11.jpg" alt="Odoo" />
         </PageLayout>
     );
 };

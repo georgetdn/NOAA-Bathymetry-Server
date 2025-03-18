@@ -1,0 +1,6 @@
+/* Override header styles ONLY for the home page */
+.home-container .header-text {
+    background-image: none !important; /* Remove background image */
+    background-color: rgb(250, 253, 252) !important; /* Set solid background */
+    color: rgb(80, 75, 75) !important; /* Change text to black */
+}

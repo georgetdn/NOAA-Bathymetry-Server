@@ -2,12 +2,37 @@ const express = require("express");
 const path = require("path");
 const cors = require("cors");
 const nodemailer = require("nodemailer");
+const OpenAI = require("openai"); // ✅ Use OpenAI directly
+
 require("dotenv").config();
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+
+// ✅ Correct way to initialize OpenAI
+const openai = new OpenAI({
+    apiKey: "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", // Use .env for security
+});
+
+// API endpoint for ChatGPT responses
+app.post("/api/chat", async (req, res) => {
+    try {
+        const { message } = req.body;
+
+        const response = await openai.chat.completions.create({
+            model: "gpt-4o",
+            messages: [{ role: "user", content: message }],
+        });
+
+        res.json({ reply: response.choices[0].message.content });
+    } catch (error) {
+        console.error("ChatGPT API Error:", error);
+        res.status(500).json({ error: "Failed to get a response from ChatGPT" });
+    }
+});
 
 app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`);

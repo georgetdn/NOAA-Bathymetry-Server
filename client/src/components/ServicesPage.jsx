@@ -27,6 +27,7 @@ const ServicesPage = () => {
                 <li><strong>Data Backup & Disaster Recovery:</strong> Data loss can be catastrophic for businesses. Our data backup and disaster recovery solutions ensure that your critical information is safe, secure, and easily recoverable.</li>
                 <li><strong>Cloud Computing Solutions:</strong> Take advantage of the cloud to improve scalability, collaboration, and cost efficiency. We offer cloud migration, cloud storage solutions, and infrastructure management services to help businesses transition seamlessly to cloud-based environments.</li>
              </ul>
+             <br/><img src="/images/image11.jpg" alt="Odoo" />
         </PageLayout>
     );
 };

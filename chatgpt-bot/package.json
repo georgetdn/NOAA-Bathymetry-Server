@@ -1,5 +1,5 @@
 {
-  "name": "y219.com",
+  "name": "chatgpt-bot",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -14,8 +14,6 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "nodemailer": "^6.10.0",
-    "openai": "^4.87.3",
-    "react-router-dom": "^7.2.0"
+    "openai": "^4.87.3"
   }
 }

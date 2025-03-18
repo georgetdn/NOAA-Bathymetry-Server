@@ -1,7 +1,7 @@
 import React from "react";
 import MenuBar from "./MenuBar";
 import ImageCarousel from "./ImageCarousel";
-
+import "../styles/HomePage.css";  // Import the override styles
 const HomePage = () => {
     return (
         <div className="home-container">

@@ -1,0 +1,61 @@
+.odoo-content-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px; /* Adjust the gap between text and image as needed */
+}
+
+.odoo-text-content {
+    flex: 1;
+}
+
+.odoo-image-content {
+    flex: 0 0 auto;
+}
+
+.odoo-image-content img {
+    max-width: 100%;
+    height: auto;
+}
+
+.odoo-chat-container {
+    margin-top: 20px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.odoo-chat-container h3 {
+    margin-bottom: 10px;
+}
+
+.odoo-chat-container textarea {
+    width: 100%;
+    height: 100px;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.odoo-chat-container button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.odoo-chat-container button:hover {
+    background-color: #0056b3;
+}
+
+.odoo-chat-response {
+    margin-top: 10px;
+}
+
+.odoo-chat-response p {
+    white-space: pre-wrap;
+}

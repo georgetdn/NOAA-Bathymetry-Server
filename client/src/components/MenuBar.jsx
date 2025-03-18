@@ -17,8 +17,18 @@ const MenuBar = () => {
             <ul className={`menu-items ${menuOpen ? 'show' : ''}`}>
                 <li><Link to="/">Home</Link></li>
                 <li><Link to="/services">Services</Link></li>
+                <li className="dropdown">
+                    <Link to="">Accounting Software</Link>
+                    <ul className="submenu">
+                        <li><Link to="/accounting/odoo">Odoo</Link></li>
+                        <li><Link to="/accounting/quickbooks">QuickBooks</Link></li>
+                        <li><Link to="/accounting/gnucash">GNUcash</Link></li>
+                        <li><Link to="/accounting/quicken">Quicken</Link></li>
+                        <li><Link to="/accounting/chatclient">Ask a Question</Link></li>
+                    </ul>
+                </li>
+                <li><Link to="/pricing">Pricing</Link></li>
                 <li><Link to="/contact">Contact</Link></li>
-                <li><Link to="/login">Login</Link></li>
             </ul>
         </nav>
     );
