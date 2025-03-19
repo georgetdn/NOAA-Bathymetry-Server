@@ -9,7 +9,7 @@ const Odoo = () => {
             <h2>Odoo</h2>
  
                    <div className="services-list">
-     We offer <strong>Odo setup, advice, installation, and maintenance</strong> to help you streamline your business finances.  
+     We offer <strong>Odoo setup, advice, installation, and maintenance</strong> to help you streamline your business finances.  
     Need assistance? <a href="../contact">Contact us here</a>. <br/>
                             📌 <strong>What is Odoo?</strong><br/>
                         Odoo is an all-in-one business management software that helps companies manage various business operations, including CRM, sales, inventory, accounting, HR, manufacturing, and more. It is modular, meaning businesses can install and use only the apps they need.

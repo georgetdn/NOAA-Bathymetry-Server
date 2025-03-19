@@ -10,6 +10,8 @@ import QuickBooks from "./components/QuickBooks";
 import GNUcash from "./components/GNUcash";
 import Quicken from "./components/Quicken";
 import ChatClient from "./components/ChatClient";
+import Payments from "./components/payments";
+import POS from "./components/pos";
 
 const App = () => {
     return (
@@ -26,6 +28,8 @@ const App = () => {
                     <Route path="/accounting/gnucash" element={<GNUcash />} />
                     <Route path="/accounting/quicken" element={<Quicken />} />
                     <Route path="/accounting/chatclient" element={<ChatClient />} />
+                    <Route path="/payments" element={<Payments />} />  {/* Added Route */}
+                    <Route path="/pos" element={<POS />} />  {/* Added Route */}
                 </Routes>
             </div>
         </Router>

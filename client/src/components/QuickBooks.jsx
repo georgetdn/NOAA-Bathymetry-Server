@@ -6,10 +6,10 @@ const QuickBooks = () => {
         <PageLayout>
             <h2>QuickBooks</h2>
             <div className="services-list">      
-            <p>
+            
     We offer <strong>QuickBooks setup, advice, installation, and maintenance</strong> to help you streamline your business finances.  
-    Need assistance? <a href="../contact">Contact us here</a>.  
-</p>
+    Need assistance? <a href="../contact">Contact us</a>.  <br/> <br/>
+
             <strong>📌 What is QuickBooks?</strong><br/>
 QuickBooks is a leading <strong>accounting and financial management software</strong> designed to help businesses track income, expenses, invoices, payroll, and taxes. It simplifies bookkeeping for <strong>small to medium-sized businesses</strong> with automation and easy-to-use financial tools.<br/><br/>
 
