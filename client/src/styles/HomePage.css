@@ -1,6 +1,57 @@
-/* Override header styles ONLY for the home page */
+
 .home-container .header-text {
-    background-image: none !important; /* Remove background image */
-    background-color: rgb(250, 253, 252) !important; /* Set solid background */
-    color: rgb(80, 75, 75) !important; /* Change text to black */
+    background-image: none !important;
+    background-color: rgb(250, 253, 252) !important;
+    color: rgb(80, 75, 75) !important;
+}
+
+.content {
+    width: 100%;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.content > * {
+    width: 100%;
+    flex-shrink: 0;
+}
+
+.two-columns {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    margin-top:5rem;
+}
+
+.column {
+    flex: 1;
+    max-width: 500px;
+}
+
+.image-column {
+    text-align: center;
+}
+
+.column-image {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+.text-column {
+    padding: 1rem;
+}
+
+.text-column h2 {
+    margin-bottom: 1rem;
+    font-size: 2rem;
+}
+
+.text-column p {
+    font-size: 1.2rem;
+    line-height: 1.5;
 }

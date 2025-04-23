@@ -1,5 +1,5 @@
 .carousel-container {
-    position: fixed;
+    position: relative;
     top: 185px;
     left: 0;
     width: 100vw;
@@ -8,6 +8,7 @@
     background-color: black;
     z-index: 999;
     margin-top: 0 !important; /* Moves the carousel down */
+    margin-bottom: 150px;
 }
 
 .carousel-text-container {
