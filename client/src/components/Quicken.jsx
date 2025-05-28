@@ -4,7 +4,7 @@ import PageLayout from "./PageLayout";
 const Quicken = () => {
     return (
         <PageLayout>
-            <h2>Quicken</h2>
+            <h1>Quicken</h1>
 <div className="services-list">
 
 
@@ -92,10 +92,9 @@ Quicken is a leading <strong>personal finance and budgeting software</strong> th
 
 🚀Vizit Quicken website for more information: <a href="https://www.quicken.com/" target="_blank">www.quicken.com/</a>
 
-<br/><br/>
+<br/><br/><br/><br/>
 </div>
-   <img src="/images/image11.jpg" alt="Odoo" />
-
+  
 </PageLayout>
 );
 

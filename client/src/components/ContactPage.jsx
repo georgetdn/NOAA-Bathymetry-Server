@@ -49,7 +49,7 @@ const ContactPage = () => {
     return (
         <PageLayout>
             <div className="contact-content">
-                <h2>Contact Us</h2>
+                <h1>Contact Us</h1>
 
                 {/* Contact Details */}
                 <div className="contact-info">
@@ -103,7 +103,6 @@ const ContactPage = () => {
                 {/* Display status messages */}
                 {status && <p className="status-message">{status}</p>}
             </div>
-            <img src="/images/image11.jpg" alt="Odoo" />
         </PageLayout>
     );
 };

@@ -4,7 +4,7 @@ import PageLayout from "./PageLayout";
 const QuickBooks = () => {
     return (
         <PageLayout>
-            <h2>QuickBooks</h2>
+            <h1>QuickBooks</h1>
             <div className="services-list">      
             
     We offer <strong>QuickBooks setup, advice, installation, and maintenance</strong> to help you streamline your business finances.  
@@ -88,13 +88,11 @@ QuickBooks is a leading <strong>accounting and financial management software</st
 📈 <strong>Scales with business growth</strong> – Choose the right version as you expand.<br/>
 🛠 <strong>Integrates with 650+ apps</strong> – Customizable to your business needs.<br/><br/>
 
-🚀Vizit QhickBooks website for more information: 
-         <p>
-            <a href="https://quickbooks.intuit.com/" target="_blank">www.quickbooks.intuit.com/</a><br/><br/>
-      </p>
-    
+🚀Vizit QhickBooks website for more information:  <a href="https://quickbooks.intuit.com/" target="_blank">www.quickbooks.intuit.com/</a><br/><br/>
+
+     <br/> <br/> 
             </div> 
-            <img src="/images/image11.jpg" alt="Odoo" />
+            
         </PageLayout>
     );
 };

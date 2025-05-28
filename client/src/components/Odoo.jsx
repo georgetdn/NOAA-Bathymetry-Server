@@ -6,7 +6,8 @@ const Odoo = () => {
    return (
         <PageLayout>
             <br/>
-            <h2>Odoo</h2>
+            <br/>
+            <h1>Odoo</h1>
  
                    <div className="services-list">
      We offer <strong>Odoo setup, advice, installation, and maintenance</strong> to help you streamline your business finances.  
@@ -59,12 +60,8 @@ const Odoo = () => {
 5️⃣ AI-Powered Features (New in Odoo 17)<br/>
 
     AI-assisted email automation, sales predictions, and chatbots.<br/><br/>
-    More information about Odoo at <a href="https://www.odoo.com/">www.odoo.com/</a><br/><br/>
+    More information about Odoo at <a href="https://www.odoo.com/">www.odoo.com/</a><br/><br/><br/><br/>
                     </div>
-   
-
-                    <img src="/images/image11.jpg" alt="Odoo" />
-   
         </PageLayout>
     );
 };

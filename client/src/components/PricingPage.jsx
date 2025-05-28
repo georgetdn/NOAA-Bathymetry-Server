@@ -5,7 +5,7 @@ import PageLayout from "./PageLayout";
 const PricingPage = () => {
     return (
         <PageLayout>
-            <h2>Pricing</h2>
+            <h1>Pricing</h1>
             <div className="services-list">
                 <p>
             <strong>Initial Consultation </strong>  -  Free <br/>    
@@ -15,6 +15,8 @@ const PricingPage = () => {
              <strong>GNUcash Accounting Installation</strong> - Free<br/> 
              <strong>Telephone or Zoom Help Desk</strong>  - $25/hour <br/>   
              <strong>Custom Programming </strong> -  Based on project length (about $125/day) <br/>    
+             <strong>Websites</strong><br/>
+             <a href="https://y219.com/prom">Check prices here</a><br/>
              <strong>Odoo</strong><br/>
              <a href="https://www.odoo.com/pricing/">Check prices here</a><br/>
              <strong>QuickBooks</strong><br/>
@@ -25,9 +27,7 @@ const PricingPage = () => {
              <strong>For  Credit Card and payments advice <a href="../payments">click here</a></strong>
            </p>
             </div>
-            <p>
-            <img src="/images/image11.jpg" alt="Odoo" />
-</p>
+    
         </PageLayout>
     );
 };

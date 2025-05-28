@@ -51,7 +51,7 @@ const ChatClient = () => {
     return (
         <PageLayout>
  
-            <h2>Ask a Question</h2>
+            <h1>Ask a Question</h1>
             <div style={{
             maxWidth: "900px",
             margin: "auto",
@@ -66,7 +66,7 @@ const ChatClient = () => {
                 style={{
                     border: "1px solid #ccc",
                     padding: "10px",
-                    height: "400px",  // Fixed height
+                    height: "300px",  // Fixed height
                     overflowY: "auto",  // Enable scrolling
                     borderRadius: "10px",
                     background: "#f9f9f9"
@@ -113,12 +113,14 @@ const ChatClient = () => {
                     placeholder="Type a Quesiton... Ex. Does odoo process credit cards?"
                     rows="3" // 🛠 Allows multiple lines
                     style={{
-                        flex: 1,
-                        padding: "15px",
-                        borderRadius: "5px",
-                        fontSize: "20px", // 🛠 Increased font size for input field
-                        border: "1px solid #ccc"
-                    }}
+        flex: 1,
+        padding: "15px",
+        borderRadius: "5px",
+        fontSize: "20px", // 🛠 Increased font size for input field
+        border: "1px solid #ccc",
+        backgroundColor: "#fff", // ✅ White background
+        color: "#000"            // ✅ Black text
+    }}
                 />
                  <button onClick={sendMessage} style={{
                     padding: "15px",

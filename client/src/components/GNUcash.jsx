@@ -4,7 +4,7 @@ import PageLayout from "./PageLayout";
 const GNUcash = () => {
     return (
         <PageLayout>
-            <h2>GNUcash</h2>
+            <h1>GNUcash</h1>
                  
 <div className="services-list">
 
@@ -90,10 +90,10 @@ GnuCash is a **free, open-source financial accounting software** designed for in
 🛠 <strong>Cross-platform & customizable</strong> – Works on all major operating systems.<br/>
 
 More information about GNUcash at <a href="https://gnucash.org/">www.gnucash.org/</a>! 🚀
-<br/><br/>
+<br/><br/><br/><br/>
 
 </div>
-   <img src="/images/image11.jpg" alt="Odoo" />
+ 
 
 </PageLayout>
 );

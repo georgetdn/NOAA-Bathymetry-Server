@@ -6,13 +6,13 @@ const payments = () => {
    return (
         <PageLayout>
             <br/>
-            <h2>Payment Systems</h2>
+            <h1>Payment Systems</h1>
  
                    <div className="services-list">
      We offer <strong>Payments systems setup, advice, installation, and maintenance</strong> to help you streamline your business finances.  
     <br/>Need assistance? <a href="../contact">Contact us here</a>. <br/><br/>
 
-    📌<strong> What Are Credit Card Payment Providers?</strong><br/>
+💳 <strong> What Are Credit Card Payment Providers?</strong><br/>
 
 Credit card payment providers process online and in-store transactions, allowing businesses to accept payments from Visa, Mastercard, American Express, Discover, and more. These providers offer secure, fast, and reliable payment processing solutions.<br/><br/>
 💡<strong> Why Use a Payment Provider?</strong><br/>
@@ -22,28 +22,28 @@ Credit card payment providers process online and in-store transactions, allowing
 
 ✔ E-commerce Stores → Accepts online payments for products/services.<br/> ✔ Retail & Restaurants → Uses POS systems for in-person transactions.<br/> ✔ Freelancers & Service Businesses → Handles invoices and client payments.<br/> ✔ Subscription & SaaS Companies → Manages recurring billing and memberships.<br/><br/>
 🚀 <strong>Top Credit Card Payment Providers</strong><br/>
-1️⃣ Stripe
+1️⃣ <a href="https://www.stripe.com">Stripe</a>
 
 📌 Best for Developers & E-commerce<br/> 📌 API-first platform with custom integrations.<br/> 📌 Supports one-time, recurring, and marketplace payments.<br/> 📌 Competitive pricing: 2.9% + $0.30 per transaction.<br/><br/>
-2️⃣ PayPal
+2️⃣ <a href="https://www.paypal.com/us/home">PayPal</a>
 
 📌 Best for Small Businesses & Freelancers<br/> 📌 Easy setup with PayPal Checkout & PayPal Business.<br/> 📌 Supports Buy Now, Pay Later (BNPL).<br/> 📌 Pricing: 2.99% + fixed fee (varies by country).<br/><br/>
-3️⃣ Square
+3️⃣ <a href="https://squareup.com/us/en">Square</a>
 
 📌 Best for In-Person & POS Payments<br/> 📌 Offers free POS software with hardware integration.<br/> 📌 Supports tap, chip, and contactless payments.<br/> 📌 Pricing: 2.6% + $0.10 per swipe/dip/tap.<br/><br/>
-4️⃣ Authorize.Net
+4️⃣ <a href = "https://www.Authorize.Net">Authorize.Net</a>
 
 📌 Best for Secure & Custom Payment Solutions<br/> 📌 Works with small businesses and enterprises.<br/> 📌 Supports credit cards, e-checks, and recurring billing.<br/> 📌 Pricing: 2.9% + $0.30 per transaction + $25 monthly fee.<br/><br/>
-5️⃣ Adyen
+5️⃣ <a href="https://www.adyen.com/">Adyen</a>
 
 📌 Best for Enterprise-Level Businesses<br/> 📌 Global payment provider used by Netflix, Spotify, Uber.<br/> 📌 Supports local payment methods in 150+ currencies.<br/> 📌 Custom pricing based on volume.<br/><br/>
-6️⃣ Braintree (by PayPal)
+6️⃣ <a href="https://www.paypal.com/us/braintree">Braintree (by PayPal)</a>
 
 📌 Best for Advanced Customization & Mobile Payments<br/> 📌 API-driven platform for subscription and marketplace payments.<br/> 📌 Supports Apple Pay, Google Pay, Venmo.<br/> 📌 Pricing: 2.9% + $0.30 per transaction.<br/><br/>
-7️⃣ Worldpay
+7️⃣ <a href="https://www.worldpay.com/en">Worldpay</a>
 
 📌 Best for Brick-and-Mortar & Large Businesses<br/> 📌 Supports POS systems, online, and mobile payments.<br/> 📌 Offers custom pricing for high-volume businesses.<br/><br/>
-8️⃣ 2Checkout (now Verifone)
+8️⃣ <a href="https://www.verifone.com/en/us">2Checkout (now Verifone)</a>
 
 📌 Best for International Digital Sales<br/> 📌 Supports cross-border payments in 200+ countries.<br/> 📌 Ideal for SaaS, software, and digital products.<br/> 📌 Pricing: 3.5% + $0.35 per transaction.<br/><br/>
 🔗 <strong>How to Choose the Right Provider?</strong><br/>
@@ -63,9 +63,6 @@ Need help choosing the best payment provider for your business?<br/>
 
 </div>
    
-
-<img src="/images/image11.jpg" alt="Odoo" />
-
 </PageLayout>
 );
 };

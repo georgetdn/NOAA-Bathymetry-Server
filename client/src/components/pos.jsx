@@ -6,7 +6,7 @@ const pos = () => {
    return (
         <PageLayout>
             <br/>
-            <h2>Point of Sale</h2>
+            <h1>Point of Sale</h1>
  
                    <div className="services-list">
      We offer <strong>POS setup, advice, installation, and maintenance</strong> to help you streamline your business finances.  
@@ -106,9 +106,6 @@ Need help choosing the **best cash register hardware for Odoo or QuickBooks?**
 
 </div>
    
-
-<img src="/images/image11.jpg" alt="Odoo" />
-
 </PageLayout>
 );
 };

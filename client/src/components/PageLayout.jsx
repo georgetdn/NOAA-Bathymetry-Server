@@ -18,7 +18,23 @@ const PageLayout = ({ children }) => {
             <div className="page-content">
                 {children} {/* Dynamic content for each page */}
             </div>
+            <div>
+                {/* Footer */}
+<footer className="copyright">
+    <div className="footer-links">
+        <a href="/terms">Terms Of Use</a>
+        <span className="footer-separator">|</span>
+        <a href="/privacy">Privacy & Cookies</a>
+    </div>
+    <div>
+        © {new Date().getFullYear()} Y219.com. All Rights Reserved.
+    </div>
+</footer>
+                <br/>
+           </div>
         </div>
+        
+        
     );
 };
 

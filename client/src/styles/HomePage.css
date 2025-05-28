@@ -1,8 +1,9 @@
 
 .home-container .header-text {
     background-image: none !important;
-    background-color: rgb(250, 253, 252) !important;
+        background-color:  rgb(249, 246, 221) !important;
     color: rgb(80, 75, 75) !important;
+    font-family: 'Advent Pro', sans-serif;
 }
 
 .content {
@@ -18,7 +19,43 @@
     width: 100%;
     flex-shrink: 0;
 }
+.copyright {
+  position: fixed;
+  bottom: 0;
+  left: 15px;
+  right: 15px;
+  text-align: center;
+  color: white;
+  background-color: #002147;
+  padding: 20px 0;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
 
+.footer-links {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 5px;
+}
+
+.footer-links a {
+  color: white;
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+  color: #ccc;
+  text-decoration: underline;
+}
+
+.footer-separator {
+  color: #ccc;
+}
 .two-columns {
     display: flex;
     justify-content: center;
@@ -52,6 +89,81 @@
 }
 
 .text-column p {
-    font-size: 1.2rem;
+    font-size: 1.5rem;
     line-height: 1.5;
 }
+
+.contact {
+    position: absolute;
+    top: 130px;
+    left: 50px;
+    width: 200px;
+    height: 200px;            /* match width for a circle */
+    border-radius: 50%;       /* makes it circular */
+    background: #f0c040;      /* example background color */
+    z-index: 2000;
+  }
+
+.centered {
+  text-align: center;
+}
+
+.star-overlay {
+    position: absolute;
+    top: 410px;
+    right: 20px;
+    width: 430px;
+    height: auto;
+    z-index: 2000;
+  
+    clip-path: polygon(
+        50% 0%, 
+        58% 12%, 
+        70% 6%, 
+        66% 22%,
+        85% 20%, 
+        74% 36%, 
+        95% 45%, 
+        74% 56%,
+        95% 86%, /* extended from 76% to 86% */
+        66% 68%, 
+        60% 86%, /* extended from 70% to 94% */
+        50% 75%, /* extended from 50% to 82% */
+        30% 94%, 
+        34% 68%, 
+        15% 76%, 
+        26% 56%,
+        5% 45%, 
+        26% 36%, 
+        15% 20%, 
+        34% 22%,
+        30% 6%, 
+        42% 12%
+      );
+      
+      -webkit-clip-path: polygon(
+        50% 0%,
+        58% 12%,
+        70% 6%,
+        66% 22%,
+        85% 20%, 
+        74% 36%, 
+        95% 45%, 
+        74% 56%,
+        95% 86%, /* extended from 76% to 86% */
+        66% 68%, 
+        60% 86%, /* extended from 70% to 94% */
+        50% 75%, /* extended from 50% to 82% */
+        30% 94%, 
+        34% 68%, 
+        15% 76%, 
+        26% 56%,
+        5% 45%, 
+        26% 36%, 
+        15% 20%, 
+        34% 22%,
+        30% 6%, 
+        42% 12%
+      );
+  }
+  

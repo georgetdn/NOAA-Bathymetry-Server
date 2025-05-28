@@ -12,6 +12,10 @@ import Quicken from "./components/Quicken";
 import ChatClient from "./components/ChatClient";
 import Payments from "./components/payments";
 import POS from "./components/pos";
+import Prom from "./components/prom";
+import Terms from "./components/Terms";
+import Privacy from "./components/Privacy";
+import NotFoundPage from "./components/NotFoundPage";
 
 const App = () => {
     return (
@@ -30,6 +34,10 @@ const App = () => {
                     <Route path="/accounting/chatclient" element={<ChatClient />} />
                     <Route path="/payments" element={<Payments />} />  {/* Added Route */}
                     <Route path="/pos" element={<POS />} />  {/* Added Route */}
+                    <Route path="/prom" element={<Prom />} />  {/* Added Route */}
+                    <Route path="/terms" element={<Terms />} />  {/* Added Route */}
+                    <Route path="/privacy" element={<Privacy />} />  {/* Added Route */}
+                    <Route path="*" element={<NotFoundPage />} />
                 </Routes>
             </div>
         </Router>

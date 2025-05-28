@@ -13,7 +13,7 @@ const LoginPage = () => {
     return (
         <PageLayout>
             <div className="login-content">
-                <h2>Members Login</h2>
+                <h1>Members Login</h1>
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
                         <label>Email:</label>
