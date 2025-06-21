@@ -1,9 +1,9 @@
 .carousel-container {
     position: relative;
-    top: 185px;
+    top: 156px;
     left: 0;
     width: 100vw;
-    height: 500px; /* Increase the height to 500px */
+    height: 640px; /* Increase the height to 500px */
     overflow: hidden;
     background-color: black;
     z-index: 999;
@@ -59,12 +59,12 @@
 .carousel-slide {
     position: relative;
     width: 100vw;
-    height: 500px; /* Ensure the slide container matches the new height */
+    height: 640px; /* Ensure the slide container matches the new height */
 }
 
 .carousel-slide img {
     width: 100vw;
-    height: 500px; /* Ensure images match the new height */
+    height: 640px; /* Ensure images match the new height */
     object-fit: cover;
     flex-shrink: 0;
     display: block;

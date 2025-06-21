@@ -5,8 +5,6 @@ import "../styles/Odoo.css"; // Import the CSS file for styling
 const Odoo = () => {
    return (
         <PageLayout>
-            <br/>
-            <br/>
             <h1>Odoo</h1>
  
                    <div className="services-list">
@@ -60,7 +58,7 @@ const Odoo = () => {
 5️⃣ AI-Powered Features (New in Odoo 17)<br/>
 
     AI-assisted email automation, sales predictions, and chatbots.<br/><br/>
-    More information about Odoo at <a href="https://www.odoo.com/">www.odoo.com/</a><br/><br/><br/><br/>
+    More information about Odoo at <a href="https://www.odoo.com/">www.odoo.com/</a>
                     </div>
         </PageLayout>
     );

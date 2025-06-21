@@ -52,11 +52,11 @@ const ContactPage = () => {
                 <h1>Contact Us</h1>
 
                 {/* Contact Details */}
-                <div className="contact-info">
-                    <p>Call us at   <strong><a href="tel:7035687739">703-568-7739 </a></strong>
-                    - Email us at <a href="mailto:info@y219.com">info@y219.com</a> <br/><br/><br/><br/><br/><br/>
-                    Or fill out the form below.
-                </p>
+                <div className="contact-line" >
+                    <strong>Call us at   <a href="tel:7035687739">703-568-7739 </a>
+                    - Email us at <a href="mailto:info@y219.com">info@y219.com</a> <br/>
+                    Or fill out the form below.</strong>
+                
                 </div>
 
                 {/* Contact Form */}

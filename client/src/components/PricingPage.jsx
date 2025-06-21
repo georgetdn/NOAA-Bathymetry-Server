@@ -5,7 +5,7 @@ import PageLayout from "./PageLayout";
 const PricingPage = () => {
     return (
         <PageLayout>
-            <h1>Pricing</h1>
+            <p><h1>Pricing</h1></p>
             <div className="services-list">
                 <p>
             <strong>Initial Consultation </strong>  -  Free <br/>    
@@ -27,7 +27,7 @@ const PricingPage = () => {
              <strong>For  Credit Card and payments advice <a href="../payments">click here</a></strong>
            </p>
             </div>
-    
+            
         </PageLayout>
     );
 };

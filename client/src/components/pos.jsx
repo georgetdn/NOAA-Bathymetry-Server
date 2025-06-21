@@ -5,7 +5,6 @@ import "../styles/Odoo.css"; // Import the CSS file for styling
 const pos = () => {
    return (
         <PageLayout>
-            <br/>
             <h1>Point of Sale</h1>
  
                    <div className="services-list">

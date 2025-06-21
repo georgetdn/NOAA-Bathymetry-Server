@@ -14,7 +14,7 @@ const HomePage = () => {
             <MenuBar />
             
             {/* Main Co</h1>ntent */}
-            <div className="carousel-wrapper">
+            <div >
                 <ImageCarousel />
 
                 {/* Star image overlay */}
@@ -74,7 +74,7 @@ Experience personalized support and innovative solutions with Y219.com.</p>
 
             </div>
 
-<div class="centered"><h1>Local Tech Support You Can Trust</h1></div>
+            <h1 class="centered">Local Tech Support You Can Trust</h1>
             <div className="two-columns">
                 <div className="column image-column">
                     <img src="images/image13.jpg" alt="Description" className="column-image" />

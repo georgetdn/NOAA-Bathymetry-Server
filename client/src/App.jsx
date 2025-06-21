@@ -15,6 +15,7 @@ import POS from "./components/pos";
 import Prom from "./components/prom";
 import Terms from "./components/Terms";
 import Privacy from "./components/Privacy";
+import Clients from "./components/Clients";
 import NotFoundPage from "./components/NotFoundPage";
 
 const App = () => {
@@ -37,6 +38,7 @@ const App = () => {
                     <Route path="/prom" element={<Prom />} />  {/* Added Route */}
                     <Route path="/terms" element={<Terms />} />  {/* Added Route */}
                     <Route path="/privacy" element={<Privacy />} />  {/* Added Route */}
+                    <Route path="/clients" element={<Clients />} />  {/* Added Route */}
                     <Route path="*" element={<NotFoundPage />} />
                 </Routes>
             </div>

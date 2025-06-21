@@ -87,7 +87,7 @@ GnuCash is a **free, open-source financial accounting software** designed for in
 <strong>✅ Why GnuCash is a Smart Choice?</strong><br/>
 💰 <strong>Completely free & open-source</strong> – No licensing costs.<br/>
 📈 <strong>Full-featured accounting system</strong> – Suitable for personal & business use.<br/>
-🛠 <strong>Cross-platform & customizable</strong> – Works on all major operating systems.<br/>
+🛠 <strong>Cross-platform & customizable</strong> – Works on all major operating systems.<br/><br/>
 
 More information about GNUcash at <a href="https://gnucash.org/">www.gnucash.org/</a>! 🚀
 <br/><br/><br/><br/>

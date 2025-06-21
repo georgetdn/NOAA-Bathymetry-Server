@@ -90,7 +90,7 @@ QuickBooks is a leading <strong>accounting and financial management software</st
 
 🚀Vizit QhickBooks website for more information:  <a href="https://quickbooks.intuit.com/" target="_blank">www.quickbooks.intuit.com/</a><br/><br/>
 
-     <br/> <br/> 
+
             </div> 
             
         </PageLayout>

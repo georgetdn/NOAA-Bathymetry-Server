@@ -92,7 +92,7 @@ Quicken is a leading <strong>personal finance and budgeting software</strong> th
 
 🚀Vizit Quicken website for more information: <a href="https://www.quicken.com/" target="_blank">www.quicken.com/</a>
 
-<br/><br/><br/><br/>
+
 </div>
   
 </PageLayout>

@@ -1,6 +1,6 @@
 .menu-bar {
     width: 100%;
-    height: 90px; 
+    height: 70px; 
     background:  rgb(2250, 253, 252);
     background-size: cover; /* Cover the full menu bar */
     color: white !important;
@@ -15,10 +15,10 @@
     right: 0;
     z-index: 1000;
     font-family: 'Corbel Light', sans-serif; /* Set menu font to Corbel Light */
+    padding-top: 15px;
+    border-bottom: 1px solid  rgb(67, 10, 173);; /* Dark blue bottom line */
+    border-top: 1px solid  rgb(67, 10, 173);; /* Dark blue bottom line */
 }
-
-
-
 .center {
     display: flex;
     gap: 30px; /* Set space between menu options to 15px */
@@ -53,6 +53,7 @@
     text-decoration: none;
     font-size: 24px;
     padding: 14px;
+
  }
  
 .menu-bar a:hover {
@@ -81,7 +82,10 @@
     list-style: none;
     padding: 0;
     margin: 0;
-    gap: 24px;
+    gap: 14px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
   
  .menu-items.show {

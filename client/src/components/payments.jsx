@@ -5,7 +5,6 @@ import "../styles/Odoo.css"; // Import the CSS file for styling
 const payments = () => {
    return (
         <PageLayout>
-            <br/>
             <h1>Payment Systems</h1>
  
                    <div className="services-list">
@@ -57,12 +56,10 @@ Credit card payment providers process online and in-store transactions, allowing
 💰 Faster Payments – Process transactions in seconds.<br/> 📈 Scales with Your Business – Supports startups to enterprises.<br/> 🛠 Secure & PCI Compliant – Meets global security standards.<br/><br/>
 
 Need help choosing the best payment provider for your business?<br/>
-<a href="../contact">Contact us today</a>! 🚀<br/><br/>
-
-
+<a href="../contact">Contact us today</a>! 🚀
 
 </div>
-   
+ 
 </PageLayout>
 );
 };
