@@ -31,7 +31,6 @@ const ServicesPage = () => {
                 <li><strong>Website Development & Maintenance:</strong> A well-designed website is crucial for any business. Our web development services include custom website design, e-commerce integration, responsive layouts, and SEO optimization.</li>
                 <li ><strong>Sample Websites</strong>
                 <ul >
-                    <li><a href = "https://y219.xyz/site1/">Accounting </a></li>
                     <li><a href = "https://estatesale21.com/">eCommence</a></li>
                     <li><a href = "https://zacharyasnyder.com/">Personal</a></li>
                     <li><a href = "https://pharm.websample219.com/">Not-for-profit organization</a></li>

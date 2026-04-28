@@ -2,102 +2,164 @@ import React from "react";
 import PageLayout from "./PageLayout";
 
 const PrivacyPage = () => {
-    return (
-        <PageLayout>
-            <div className="terms-container">
-                <h1>Privacy & Cookies Policy</h1>
-                <p className="effective-date">Effective Date: 05/01/2021</p>
+  return (
+    <PageLayout>
+      <div className="terms-container">
+        <h1>Privacy Policy – Anchor Alarm 219 </h1>
+		<h1>by George Dobrescu</h1>
+        <p className="effective-date">
+          <strong>Last updated:</strong> 2025-10-02
+        </p>
 
-                <h2>1. Information We Collect</h2>
-                <p>Y219.com collects information you provide directly to us, such as when you contact us for services, create an account, or communicate with us. This may include:</p>
-                <ul>
-                    <li>Personal identification information (name, email address, phone number)</li>
-                    <li>Business information (company name, address, industry)</li>
-                    <li>Technical information about your systems when providing IT services</li>
-                    <li>Communication records and service history</li>
-                </ul>
+        <section>
+          <p>
+            This Privacy Policy describes how <strong>George Dobrescu</strong> (“we”, “us”, or “our”)
+            handles information in the mobile application <strong>Anchor Alarm 219</strong> (the “App”).
+            The App helps you monitor your vessel’s position while at anchor. We designed it to work
+            <strong> without collecting or selling your personal data</strong>. Location processing and alert
+            logic occur on your device.
+          </p>
+        </section>
 
-                <h2>2. How We Use Your Information</h2>
-                <p>We use the information we collect to:</p>
-                <ul>
-                    <li>Provide, maintain, and improve our IT services</li>
-                    <li>Process transactions and send related information</li>
-                    <li>Send technical notices, updates, and support messages</li>
-                    <li>Respond to your comments, questions, and customer service requests</li>
-                    <li>Monitor and analyze trends and usage patterns</li>
-                </ul>
+        <section>
+          <h2>Information We Process</h2>
+          <ul>
+            <li>
+              <strong>Location (required):</strong> Used to monitor GPS position and determine when to alert.
+              Processed on-device in real time; not sent to our servers.
+            </li>
+            <li>
+              <strong>Phone number (optional):</strong> If you enable SMS alerts, you enter a recipient number.
+              It is stored locally on your device and used only to send alerts you configure.
+            </li>
+            <li>
+              <strong>SMS (optional):</strong> If enabled, the App sends text messages from your device when
+              conditions you set are met. Your mobile carrier processes these messages.
+            </li>
+            <li>
+              <strong>Phone/SIM status (optional):</strong> Read only to confirm that a SIM card is available
+              for sending SMS. The App does not make or receive phone calls.
+            </li>
+            <li>
+              <strong>Crash/diagnostic data (optional):</strong> If you opt in via your OS or store settings,
+              your device may send anonymized crash logs to the platform provider. We do not receive personally
+              identifying information by default.
+            </li>
+          </ul>
+        </section>
 
-                <h2>3. Information Sharing and Disclosure</h2>
-                <p>We do not sell, trade, or otherwise transfer your personal information to third parties except in the following circumstances:</p>
-                <ul>
-                    <li>With your explicit consent</li>
-                    <li>To trusted service providers who assist in operating our business</li>
-                    <li>When required by law or to protect our rights and safety</li>
-                    <li>In connection with a business transfer or acquisition</li>
-                </ul>
+        <section>
+          <h2>What We Don’t Do</h2>
+          <ul>
+            <li>We do <strong>not</strong> collect, store, or transmit your location to our servers.</li>
+            <li>We do <strong>not</strong> use third-party analytics or advertising SDKs.</li>
+            <li>We do <strong>not</strong> sell or share personal data.</li>
+          </ul>
+        </section>
 
-                <h2>4. Data Security</h2>
-                <p>We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the internet or electronic storage is 100% secure.</p>
+        <section>
+          <h2>How We Use Data</h2>
+          <ul>
+            <li>
+              <strong>On-device monitoring:</strong> Location is used to compute movement and thresholds and to
+              display maps and alerts.
+            </li>
+            <li>
+              <strong>SMS alerts (optional):</strong> Your configured phone number is used only to send alerts you
+              requested.
+            </li>
+            <li>
+              <strong>Permissions used:</strong>
+              <ul>
+                <li>Location — anchor monitoring.</li>
+                <li>SMS (send) — optional, to send alerts.</li>
+                <li>Phone state — optional, to check SIM presence.</li>
+                <li>Notifications — to show ongoing monitoring and alarms.</li>
+                <li>Foreground service (location) — to keep monitoring active when the screen is off.</li>
+              </ul>
+            </li>
+          </ul>
+        </section>
 
-                <h2>5. Data Retention</h2>
-                <p>We retain your personal information for as long as necessary to fulfill the purposes outlined in this policy, unless a longer retention period is required or permitted by law.</p>
+        <section>
+          <h2>Third-Party Services</h2>
+          <p>
+            The App may use Google services (e.g., Google Maps / Google Play Services). Map tiles, GNSS libraries,
+            or crash services are provided by Google and subject to their privacy terms. Your device may contact
+            Google servers to fetch maps/SDK updates or submit crash logs.
+          </p>
+          <p>
+            When SMS alerts are enabled, messages are handled by your mobile carrier under their terms.
+          </p>
+        </section>
 
-                <h2>6. Cookies and Tracking Technologies</h2>
-                <p>Our website uses cookies and similar tracking technologies to enhance your browsing experience. Cookies are small data files stored on your device.</p>
+        <section>
+          <h2>Data Storage &amp; Retention</h2>
+          <p>
+            Settings (such as phone number and thresholds) are stored locally on your device and remain until you
+            delete the App or clear its data. SMS content is not stored by the App after sending (your SMS app or
+            carrier may retain copies). We do not maintain server copies.
+          </p>
+        </section>
 
-                <h2>7. Types of Cookies We Use</h2>
-                <ul>
-                    <li><strong>Essential Cookies:</strong> Necessary for the website to function properly</li>
-                    <li><strong>Analytics Cookies:</strong> Help us understand how visitors interact with our website</li>
-                    <li><strong>Functional Cookies:</strong> Remember your preferences and settings</li>
-                </ul>
+        <section>
+          <h2>Your Choices</h2>
+          <ul>
+            <li>You can disable SMS alerts or remove the phone number in Settings.</li>
+            <li>You can turn off location permission in system settings (note: the App won’t function without it).</li>
+            <li>You can delete all local data by uninstalling the App or clearing its data in system settings.</li>
+          </ul>
+        </section>
 
-                <h2>8. Cookie Management</h2>
-                <p>You can control cookies through your browser settings. However, disabling certain cookies may affect website functionality. Most browsers allow you to:</p>
-                <ul>
-                    <li>View what cookies are stored and delete them individually</li>
-                    <li>Block third-party cookies</li>
-                    <li>Block cookies from specific sites</li>
-                    <li>Delete all cookies when you close your browser</li>
-                </ul>
+        <section>
+          <h2>Security</h2>
+          <p>
+            We minimize data collection and keep processing on-device. No mobile app can guarantee perfect security;
+            use strong device security (PIN/biometrics) and keep your OS up to date.
+          </p>
+        </section>
 
-                <h2>9. Your Rights</h2>
-                <p>Depending on your location, you may have certain rights regarding your personal information:</p>
-                <ul>
-                    <li>Access to your personal information</li>
-                    <li>Correction of inaccurate information</li>
-                    <li>Deletion of your personal information</li>
-                    <li>Restriction of processing</li>
-                    <li>Data portability</li>
-                    <li>Objection to processing</li>
-                </ul>
+        <section>
+          <h2>Children’s Privacy</h2>
+          <p>
+            The App is not directed to children under 13 (or the minimum age in your region). We do not knowingly
+            collect personal data from children.
+          </p>
+        </section>
 
-                <h2>10. Third-Party Links</h2>
-                <p>Our website may contain links to third-party websites. We are not responsible for the privacy practices or content of these external sites. We encourage you to review their privacy policies.</p>
+        <section>
+          <h2>International Use</h2>
+          <p>
+            Data processing occurs on your device in the country where you use the App. We do not transfer your
+            personal data to our servers.
+          </p>
+        </section>
 
-                <h2>11. Children's Privacy</h2>
-                <p>Our services are not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13.</p>
+        <section>
+          <h2>Changes to This Policy</h2>
+          <p>
+            We may update this policy to reflect App or legal changes. The updated version will be posted here with a
+            new “Last updated” date.
+          </p>
+        </section>
 
-                <h2>12. International Data Transfers</h2>
-                <p>If you are located outside of [Your Country], please be aware that information we collect may be transferred to and processed in [Your Country]. By using our services, you consent to this transfer.</p>
+        <section className="terms-contact-info">
+          <h2>Contact</h2>
+          <p>
+            <strong>Y219.com</strong>
+            <br />
+            Email: <a href="mailto:contact@219.com">contact@219.com</a>
+            <br />
+            Phone: 703-568-7739
+          </p>
+        </section>
 
-                <h2>13. Changes to This Policy</h2>
-                <p>We may update this Privacy & Cookies Policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the "Effective Date."</p>
-
-                <div className="terms-contact-info">
-                    <h2>Contact Information</h2>
-                    <p>If you have any questions about this Privacy & Cookies Policy, please contact us:</p>
-                    <p><strong>Y219.com</strong><br/>
-                    Email: contact@219.com<br/>
-                    Phone: 703-568-7739<br/></p>
-                </div>
-
-                <div className="back-link">
-                    <a href="/">← Back to Home</a>
-                </div>
-            </div>
-        </PageLayout>
-    );
+        <div className="back-link">
+          <a href="/">← Back to Home</a>
+        </div>
+      </div>
+    </PageLayout>
+  );
 };
 
 export default PrivacyPage;

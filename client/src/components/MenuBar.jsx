@@ -24,7 +24,6 @@ const MenuBar = () => {
                         <li><Link to="/accounting/quickbooks">QuickBooks</Link></li>
                         <li><Link to="/accounting/gnucash">GNUcash</Link></li>
                         <li><Link to="/accounting/quicken">Quicken</Link></li>
-                        <li><Link to="/accounting/chatclient">Ask a Question</Link></li>
                     </ul>
                 </li>
                 <li><Link to="/pricing">Pricing</Link></li>
