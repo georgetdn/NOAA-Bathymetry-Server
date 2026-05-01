@@ -14,19 +14,19 @@ const MAX_CONCURRENT = 1
 let activeRequests = 0
 const queue = []
 
-console.log("Loading ENC index...")
+//console.log("Loading ENC index...")
 
 setInterval(() => {
     const m = process.memoryUsage()
-    console.log(`MEM → ${(m.heapUsed/1024/1024).toFixed(0)} MB`)
+    //console.log(`MEM → ${(m.heapUsed/1024/1024).toFixed(0)} MB`)
 }, 3000)
 
 //  ===== load index =====
-const soundgIndex = JSON.parse(
-    fs.readFileSync(`${ENC_ROOT}/enc_soundg_index_clean.json`, 'utf-8')
-)
+//const soundgIndex = JSON.parse(
+//    fs.readFileSync(`${ENC_ROOT}/enc_soundg_index_clean.json`, 'utf-8')
+//)
 
-console.log("ENC index loaded")
+//console.log("ENC index loaded")
 console.log("Loading BlueTopo index...")
 
 const app = express();
@@ -289,47 +289,89 @@ try {
 //  ====== DEPART FUNCTION  ===
 
 function getDepthFromDEPARE(lat, lon) {
-
+console.log("🔥 DEPARE START", lat, lon)
+    // --- Base tile keys ---
     const baseLat = Math.floor(lat)
-    const baseLon = Math.floor(lon)
+
+    // 🔥 FIX: handle negative longitude correctly
+    const baseLonFloor = Math.floor(lon)
+    const baseLonCeil  = Math.ceil(lon)
 
     let minDepth = 1000
 
-    // 🔁 check 3x3 neighboring tiles
-    for (let dLat = -1; dLat <= 1; dLat++) {
-        for (let dLon = -1; dLon <= 1; dLon++) {
+    // 👉 Try both longitude bases to avoid missing tiles near boundaries
+    const lonBases = [baseLonFloor]
+    if (baseLonCeil !== baseLonFloor) {
+        lonBases.push(baseLonCeil)
+    }
 
-            const tileKey = (baseLat + dLat) + "_" + (baseLon + dLon)
+    // 🔁 check neighboring tiles
+    for (let dLat = -2; dLat <= 2; dLat++) {
 
-            const polygons = loadDepareTile(tileKey)
-            if (!polygons) continue
+        for (const lonBase of lonBases) {
 
-            for (const poly of polygons) {
+            for (let dLon = -2; dLon <= 2; dLon++) {
 
-                if (!poly.poly || poly.min == null) continue
+                const tileKey = (baseLat + dLat) + "_" + (lonBase + dLon)
 
-                // ⚡ FAST bounding box reject
-                if (
-                    lat < poly.minLat || lat > poly.maxLat ||
-                    lon < poly.minLon || lon > poly.maxLon
-                ) continue
+                const polygons = loadDepareTile(tileKey)
+                if (!polygons) continue
 
-                // 🔍 precise polygon check
-                if (pointInPolygon(lat, lon, poly.poly)) {
+               for (const poly of polygons) {
+    // 🔍 DEBUG (only once)
+    if (!global.__bboxCheck) {
+        console.log("BBOX:", poly.minLat, poly.maxLat, poly.minLon, poly.maxLon)
+        global.__bboxCheck = true
+    }
+                   if (
+                          lat < poly.minLat - 0.5 || lat > poly.maxLat + 0.5 ||
+                          lon < poly.minLon - 0.5 || lon > poly.maxLon + 0.5
+                   ) continue
+  
+                   if (
+                       lat < poly.minLat || lat > poly.maxLat ||
+                       lon < poly.minLon || lon > poly.maxLon
+                   ) continue
 
-                    // ✅ DRVAL1 only (poly.min)
-                    if (poly.min < minDepth) {
-                        minDepth = poly.min
-                    }
-                }
+                   // 🔥 print only once
+                   if (!global.__printedPolyShape) {
+                       console.log("Poly shape:", JSON.stringify(poly.poly).slice(0, 200))
+                       console.log("Point (lat,lon):", lat, lon)
+                       console.log("First poly point:", poly.poly[0])
+                       global.__printedPolyShape = true
+                   }
+
+                   if (pointInPolygon( lat, lon, poly.poly)) {
+
+                       if (poly.min < minDepth) {
+                           minDepth = poly.min
+                       }
+                   }
+               }
             }
         }
     }
-    if (minDepth < 0) return 0
+console.log("🔥 DEPARE RESULT:", minDepth)
+    // 🔥 IMPORTANT: do NOT convert to 0
+    if (minDepth === 1000) {
+        return 1000   // means "no data"
+    }
 
     return minDepth
 }
+
 function pointInPolygon(lat, lon, polygon) {
+
+    const EPS = 1e-9
+
+    // --- Helper: point on segment ---
+    function pointOnSegment(px, py, x1, y1, x2, y2) {
+        const cross = (py - y1) * (x2 - x1) - (px - x1) * (y2 - y1)
+        if (Math.abs(cross) > EPS) return false
+
+        const dot = (px - x1) * (px - x2) + (py - y1) * (py - y2)
+        return dot <= EPS
+    }
 
     let inside = false
 
@@ -337,15 +379,20 @@ function pointInPolygon(lat, lon, polygon) {
 
         const xi = polygon[i][0] // lon
         const yi = polygon[i][1] // lat
-
         const xj = polygon[j][0]
         const yj = polygon[j][1]
 
-        const intersect =
-            ((yi > lat) !== (yj > lat)) &&
-            (lon < (xj - xi) * (lat - yi) / (yj - yi + 1e-12) + xi)
+        // 🔥 1. Boundary check (VERY important)
+        if (pointOnSegment(lon, lat, xi, yi, xj, yj)) {
+            return true
+        }
 
-        if (intersect) inside = !inside
+        // 🔥 2. Robust ray casting
+        const intersects =
+            ((yi > lat - EPS) !== (yj > lat - EPS)) &&
+            (lon < (xj - xi) * (lat - yi) / (yj - yi + EPS) + xi + EPS)
+
+        if (intersects) inside = !inside
     }
 
     return inside
@@ -398,32 +445,39 @@ const MAX_OBJECT_CACHE = 50
 
 function loadObjectTile(tileKey) {
 
-    // ✅ cache hit (including null)
+    // ? cache hit (including null)
     if (tileKey in objectCache) {
         return objectCache[tileKey]
     }
 
     const file = `${ENC_ROOT}/object_tiles/${tileKey}.json`
 
-    // 🔥 cache negative result
+    // ?? cache negative result
     if (!fs.existsSync(file)) {
         objectCache[tileKey] = null
         return null
     }
 
     let data
+
     try {
-        data = JSON.parse(fs.readFileSync(file, 'utf-8'))
+        // ? FIX: handle NDJSON (one JSON per line)
+        const lines = fs.readFileSync(file, 'utf-8')
+            .split('\n')
+            .filter(Boolean)
+
+        data = lines.map(line => JSON.parse(line))
+
     } catch (err) {
         console.error("Bad OBJECT tile:", file)
         objectCache[tileKey] = null
         return null
     }
 
-    // 🔥 INSERT FIRST
+    // ?? INSERT FIRST
     objectCache[tileKey] = data
 
-    // 🔥 THEN enforce limit
+    // ?? THEN enforce limit
     const keys = Object.keys(objectCache)
     if (keys.length > MAX_OBJECT_CACHE) {
         delete objectCache[keys[0]]   // remove oldest
@@ -433,15 +487,23 @@ function loadObjectTile(tileKey) {
 }
 
 
+// OPTIONAL: filter only "real" collision hazards
+const HARD_HAZARDS = new Set([
+  'UWTROC','WRECKS','OBSTRN',
+  'PILPNT','MORFAC','SLCONS'
+])
+
+
 function checkObstacle(lat, lon) {
 
-  const baseLat = Math.floor(lat)
-  const baseLon = Math.floor(lon)
+  // ? FIX: correct tile scale (matches your tiles)
+  const baseLat = Math.floor(lat * 100)
+  const baseLon = Math.floor(lon * 100)
 
   let closest = null
   let minDist = Infinity
 
-  // check 3x3 tiles (same pattern as DEPARE)
+  // check 3x3 tiles
   for (let dLat = -1; dLat <= 1; dLat++) {
     for (let dLon = -1; dLon <= 1; dLon++) {
 
@@ -453,8 +515,11 @@ function checkObstacle(lat, lon) {
 
         const d = distMeters(lat, lon, obj.lat, obj.lon)
 
-        // 👉 ONLY consider within 7 meters
-        if (d <= 7 && d < minDist) {
+        // ?? OPTIONAL FILTER (enable if needed)
+        // if (!HARD_HAZARDS.has(obj.type)) continue
+
+        // ? FIX: more realistic detection radius
+        if (d <= 20 && d < minDist) {
           minDist = d
           closest = obj
         }
@@ -469,13 +534,13 @@ function checkObstacle(lat, lon) {
     distance: minDist,
     lat: closest.lat,
     lon: closest.lon,
-    colour: closest.colour,
-    shape: closest.shape,
+    colour: closest.colour || null,
+    shape: closest.shape || null,
     name: closest.name || null,
-    depth: closest.depth || null
+    depth: closest.depth || null,
+    category: closest.category || null   // ? added (useful later)
   }
 }
-
 
 
 
