@@ -2,7 +2,6 @@ const express = require("express");
 const path = require("path");
 const cors = require("cors");
 const nodemailer = require("nodemailer");
-const OpenAI = require("openai"); // ✅ Use OpenAI directly
 const fs = require('fs')
 const proj4 = require('proj4')
 proj4.defs("EPSG:26918", "+proj=utm +zone=18 +datum=NAD83 +units=m +no_defs")
@@ -71,7 +70,6 @@ const bluetopoTiles = rawBlueTopo
 
 console.log("BlueTopo index loaded")
 
-require("dotenv").config();
 
 const rateLimit = require('express-rate-limit')
 //  const app = express();
@@ -81,13 +79,13 @@ const depthLimiter = rateLimit({
     windowMs: 1000,
     max: 5
 })
-
-app.use(cors());
-app.use(express.json());
+///////////////////////////
 //  ===== QUEUE  ======
+//////////////////////////
 function processQueue() {
     if (activeRequests >= MAX_CONCURRENT) return
-    if (queue.length === 0) return
+    if (queue.length === 0) 
+       return
 
     const next = queue.shift()
     activeRequests++
@@ -100,9 +98,6 @@ console.log(`***QUEUE*** → active=${activeRequests} waiting=${queue.length}`)
         processQueue()
     })
 }
-
-
-//  ======blue top funcdtions ===
 
 function dmsToDecimal(dms) {
     if (!dms) return null
@@ -513,7 +508,7 @@ function checkObstacle(lat, lon) {
 
       for (const obj of objects) {
 
-        const d = distMeters(lat, lon, obj.lat, obj.lon)
+        const d = wdistMeters(lat, lon, obj.lat, obj.lon)
 
         // ?? OPTIONAL FILTER (enable if needed)
         // if (!HARD_HAZARDS.has(obj.type)) continue
@@ -542,187 +537,352 @@ function checkObstacle(lat, lon) {
   }
 }
 
+function wdistMeters(lat1, lon1, lat2, lon2) {
+  const R = 6371000 // meters
 
+  const dLat = (lat2 - lat1) * Math.PI / 180
+  const dLon = (lon2 - lon1) * Math.PI / 180
 
-// ===== ENC FUNCTIONS =====
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) *
+    Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2)
 
-function distMeters(lat1, lon1, lat2, lon2) {
-    const R = 6371000
-    const dLat = (lat2 - lat1) * Math.PI / 180
-    const dLon = (lon2 - lon1) * Math.PI / 180
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 
-    const a =
-        Math.sin(dLat / 2) ** 2 +
-        Math.cos(lat1 * Math.PI / 180) *
-        Math.cos(lat2 * Math.PI / 180) *
-        Math.sin(dLon / 2) ** 2
+  return R * c
+}
+//////////////////////////////////////////////////
+// ===== SOUNDINGS WITH DEPCNT FUNCTIONS =====
+//////////////////////////////////////////////////
+const EPS = 1e-7
+const MAX_DISTANCE = 2000
+const MAX_CANDIDATES = 15
+const TILE_SCALE = 10   // 0.1° tiles
 
-    return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+function tileKey(lat, lon) {
+  const latKey = Math.floor(lat * TILE_SCALE)
+  const lonKey = Math.floor(lon * TILE_SCALE)
+  return `${latKey}_${lonKey}`
+}
+console.log(tileKey(38.828, -77.032))
+
+function getNearestSoundings(P, soundings) {
+  console.log("getNearestSoundings loaded")
+
+  return soundings
+    .map(s => ({ ...s, _dist: distance(P, s) }))
+    .filter(s => s._dist <= MAX_DISTANCE)        // 🔥 limit radius
+    .sort((a, b) => a._dist - b._dist)
+    .slice(0, MAX_CANDIDATES)                   // 🔥 limit count
 }
 
-function getDepthFromENC(lat, lon) {
+function distance(a, b) {
+  const R = 6371000 // meters
+  const dLat = (b.lat - a.lat) * Math.PI / 180
+  const dLon = (b.lon - a.lon) * Math.PI / 180
 
-    console.log(`🔍 ENC lookup start → lat=${lat}, lon=${lon}`)
+  const lat1 = a.lat * Math.PI / 180
+  const lat2 = b.lat * Math.PI / 180
 
-    const step = 0.00001   // ~1.1 m
-    const maxRadius = 20   // ~20 m search max
-    const targetPoints = 6 // how many points we want
+  const x = dLon * Math.cos((lat1 + lat2) / 2)
+  const y = dLat
 
-    const candidates = []
-
-    for (let r = 0; r <= maxRadius; r++) {
-
-        for (let dLat = -r; dLat <= r; dLat++) {
-            for (let dLon = -r; dLon <= r; dLon++) {
-
-                // only scan ring edge (fast)
-                if (Math.abs(dLat) !== r && Math.abs(dLon) !== r) continue
-
-                const k =
-                    (Math.round(lat * 100000) + dLat) + "_" +
-                    (Math.round(lon * 100000) + dLon)
-
-                const bucket = soundgIndex[k]
-                if (!bucket) continue
-
-                console.log(`📦 Bucket hit at radius=${r}, key=${k}, points=${bucket.length}`)
-
-                for (const p of bucket) {
-
-                    const d = distMeters(lat, lon, p.lat, p.lon)
-
-                    // ignore far points
-                    if (d > 100) continue
-
-                    candidates.push({
-                        depth: p.depth,
-                        dist: d
-                    })
-                }
-            }
-        }
-
-        // stop early when enough points collected
-        if (candidates.length >= targetPoints) {
-            console.log(`🟢 Early stop at radius=${r}, candidates=${candidates.length}`)
-            break
-        }
-    }
-
-    console.log(`📊 Total candidates found: ${candidates.length}`)
-
-    // sort by distance
-    candidates.sort((a, b) => a.dist - b.dist)
-
-    if (candidates.length > 0) {
-        console.log(`📍 Closest point → depth=${candidates[0].depth}, dist=${candidates[0].dist.toFixed(2)}m`)
-    }
-
-    // no usable data
-    if (candidates.length === 0 || candidates[0].dist > 100) {
-        console.log("❌ ENC: no usable data (no candidates or too far)")
-        return 1000
-    }
-
-    // take best N points
-    const used = candidates.slice(0, targetPoints)
-
-    console.log(`🧮 Using top ${used.length} points for interpolation`)
-
-    // weighted interpolation
-    let num = 0
-    let den = 0
-
-    for (const c of used) {
-        const w = 1 / (c.dist + 0.5)   // smooth weighting
-        num += c.depth * w
-        den += w
-
-        console.log(`   • depth=${c.depth}, dist=${c.dist.toFixed(2)}, weight=${w.toFixed(4)}`)
-    }
-
-    if (den === 0) {
-        console.log("❌ ENC: denominator is zero")
-        return 1000
-    }
-
-    const depth = num / den
-
-    console.log(`📏 Interpolated ENC depth = ${depth.toFixed(2)}`)
-
-    // land / invalid protection
-    if (depth <= 0) {
-        console.log("⚠️ ENC indicates land or invalid (depth <= 0)")
-        return 0
-    }
-
-    console.log(`✅ ENC final depth = ${depth.toFixed(2)}`)
-
-    return depth
+  return Math.sqrt(x * x + y * y) * R
 }
 
+function getDepthAtPoint(P, soundings, contours) {
+  console.log(`\n📍 ENC DEPTH → lat=${P.lat}, lon=${P.lon}`)
+
+  const candidates = getNearestSoundings(P, soundings)
+
+  console.log(`📊 Candidates: ${candidates.length}`)
+
+  for (let i = 0; i < candidates.length; i++) {
+    const S = candidates[i]
+    const dist = distance(P, S)
+
+    console.log(`➡️ S#${i + 1}: depth=${S.depth}, dist=${dist.toFixed(1)}m`)
+
+    const { count } = countContourCrossings([P, S], contours, S.depth)
+
+    console.log(`🧮 Crossings=${count}`)
+
+    if (count  !== 0) {
+      console.log(`❌ Reject (odd)`)
+      continue
+    }
+
+    console.log(`✅ Accept → depth=${S.depth}`)
+    return S.depth
+  }
+
+  console.log(`❌ ENC failed`)
+  if (candidates.length > 0) {
+     console.log(`⚠️ Fallback → nearest sounding`)
+     return candidates[0].depth
+   }  
+   return 1000
+}
+
+function countContourCrossings(L, contours, soundingDepth) {
+  let count = 0
+
+  for (const contour of contours) {
+    
+    if (!bboxIntersectsSegment(contour.bbox, L)) continue
+
+    let lastHitKey = null
+
+    for (let i = 0; i < contour.points.length - 1; i++) {
+      const A = contour.points[i]
+      const B = contour.points[i + 1]
+
+      if (!segmentHits(L[0], L[1], A, B)) continue
+
+      // vertex detection
+      let hitPoint = null
+      if (onSegment(L[0], L[1], A)) hitPoint = A
+      else if (onSegment(L[0], L[1], B)) hitPoint = B
+      else if (onSegment(A, B, L[0])) hitPoint = L[0]
+      else if (onSegment(A, B, L[1])) hitPoint = L[1]
+
+      const key = hitPoint
+        ? `${hitPoint.lon.toFixed(7)},${hitPoint.lat.toFixed(7)}`
+        : null
+
+      // dedup vertex
+      if (hitPoint && key === lastHitKey) continue
+      if (hitPoint) lastHitKey = key
+
+      count++
+
+      // ⚡ early exit
+      if (count > 0) return { count }   // early exit: any crossing blocks
+    }
+  }
+
+  return { count }
+}
+function segmentHits(P, S, A, B) {
+  if (collinearOverlap(P, S, A, B)) return true
+
+  let d1 = orient(P, S, A)
+  let d2 = orient(P, S, B)
+  let d3 = orient(A, B, P)
+  let d4 = orient(A, B, S)
+
+  if (Math.abs(d1) < EPS) d1 = 0
+  if (Math.abs(d2) < EPS) d2 = 0
+  if (Math.abs(d3) < EPS) d3 = 0
+  if (Math.abs(d4) < EPS) d4 = 0
+
+  if (d1 * d2 < 0 && d3 * d4 < 0) return true
+
+  if (
+    (d1 === 0 && onSegment(P, S, A)) ||
+    (d2 === 0 && onSegment(P, S, B)) ||
+    (d3 === 0 && onSegment(A, B, P)) ||
+    (d4 === 0 && onSegment(A, B, S))
+  ) return true
+
+  return false
+}
+
+function orient(A, B, C) {
+  return (B.lon - A.lon) * (C.lat - A.lat) -
+         (B.lat - A.lat) * (C.lon - A.lon)
+}
+function onSegment(A, B, C) {
+  return (
+    C.lon >= Math.min(A.lon, B.lon) - EPS &&
+    C.lon <= Math.max(A.lon, B.lon) + EPS &&
+    C.lat >= Math.min(A.lat, B.lat) - EPS &&
+    C.lat <= Math.max(A.lat, B.lat) + EPS
+  )
+}
+
+function collinearOverlap(P, S, A, B) {
+  const o1 = orient(P, S, A)
+  const o2 = orient(P, S, B)
+
+  // Not collinear → no overlap
+  if (Math.abs(o1) > EPS || Math.abs(o2) > EPS) return false
+
+  // 1D projection overlap
+  const minPSx = Math.min(P.lon, S.lon)
+  const maxPSx = Math.max(P.lon, S.lon)
+  const minPSy = Math.min(P.lat, S.lat)
+  const maxPSy = Math.max(P.lat, S.lat)
+
+  const minABx = Math.min(A.lon, B.lon)
+  const maxABx = Math.max(A.lon, B.lon)
+  const minABy = Math.min(A.lat, B.lat)
+  const maxABy = Math.max(A.lat, B.lat)
+
+  const overlapX = maxPSx >= minABx && maxABx >= minPSx
+  const overlapY = maxPSy >= minABy && maxABy >= minPSy
+
+  return overlapX && overlapY
+}
+
+function bboxIntersectsSegment(bbox, L) {
+  const [P, S] = L
+
+  return !(
+    Math.max(P.lon, S.lon) < bbox.minLon ||
+    Math.min(P.lon, S.lon) > bbox.maxLon ||
+    Math.max(P.lat, S.lat) < bbox.minLat ||
+    Math.min(P.lat, S.lat) > bbox.maxLat
+  )
+}
+
+///////////////////////////
 // ===== SHORELINE ====
+//////////////////////////
 let shorelineCache = {}
 const MAX_SHORELINE_CACHE = 50
 
 function loadShorelineTile(tileKey) {
+    console.log(`🌊 [SHORELINE] Request tileKey=${tileKey}`)
 
     // ✅ cache hit (including null)
     if (tileKey in shorelineCache) {
+        console.log(`⚡ [CACHE HIT] tileKey=${tileKey} value=${shorelineCache[tileKey] ? 'DATA' : 'NULL'}`)
         return shorelineCache[tileKey]
     }
 
     const file = `${ENC_ROOT}/shoreline_tiles/${tileKey}.json`
+    console.log(`📁 [FILE PATH] ${file}`)
 
     // 🔥 cache negative result
     if (!fs.existsSync(file)) {
+        console.warn(`❌ [FILE NOT FOUND] ${file}`)
         shorelineCache[tileKey] = null
         return null
     }
 
-    let data
+    // 📊 file stats
     try {
-        data = JSON.parse(fs.readFileSync(file, 'utf-8'))
+        const stats = fs.statSync(file)
+        console.log(`📦 [FILE SIZE] ${stats.size} bytes`)
     } catch (err) {
-        console.error("Bad shoreline tile:", file)
+        console.error(`⚠️ [STAT ERROR] ${file}`, err.message)
+    }
+
+    let raw
+    let data
+
+    try {
+        raw = fs.readFileSync(file, 'utf-8')
+
+        if (!raw || raw.trim().length === 0) {
+            console.error(`🚨 [EMPTY FILE] ${file}`)
+            shorelineCache[tileKey] = null
+            return null
+        }
+
+        data = JSON.parse(raw)
+    } catch (err) {
+        console.error(`🚨 [JSON ERROR] ${file}`, err.message)
         shorelineCache[tileKey] = null
         return null
+    }
+
+    // 🔍 Inspect structure
+    console.log(`🧪 [DATA KEYS]`, Object.keys(data))
+
+    if (data.land) {
+        console.log(`🏝️ [LAND COUNT] ${data.land.length}`)
+    } else {
+        console.warn(`⚠️ [NO LAND FIELD]`)
+    }
+
+    if (data.coast) {
+        console.log(`🌊 [COAST COUNT] ${data.coast.length}`)
+    } else {
+        console.warn(`⚠️ [NO COAST FIELD]`)
+    }
+
+    // 🔍 sample geometry (first feature)
+    if (data.coast && data.coast.length > 0) {
+        const sample = data.coast[0]
+        console.log(`🔹 [COAST SAMPLE] points=${sample.points?.length} bbox=`,
+            sample.minLat, sample.maxLat, sample.minLon, sample.maxLon
+        )
+    }
+
+    if (data.land && data.land.length > 0) {
+        const sample = data.land[0]
+        console.log(`🔹 [LAND SAMPLE] points=${sample.points?.length} bbox=`,
+            sample.minLat, sample.maxLat, sample.minLon, sample.maxLon
+        )
     }
 
     // 🔥 INSERT FIRST
     shorelineCache[tileKey] = data
+    console.log(`💾 [CACHE STORE] tileKey=${tileKey}`)
 
-    // 🔥 THEN enforce limit (single check)
+    // 🔥 THEN enforce limit
     const keys = Object.keys(shorelineCache)
     if (keys.length > MAX_SHORELINE_CACHE) {
-        delete shorelineCache[keys[0]]   // remove oldest
+        const removed = keys[0]
+        delete shorelineCache[removed]
+        console.log(`🧹 [CACHE EVICT] removed=${removed}`)
     }
 
+    console.log(`✅ [DONE] tileKey=${tileKey}`)
     return data
 }
 
 function pointToSegmentDistance(lat, lon, lat1, lon1, lat2, lon2) {
 
+    console.log(`📏 [DIST] Input P=(${lat},${lon}) A=(${lat1},${lon1}) B=(${lat2},${lon2})`)
+
+    // 🚨 validate inputs early
+    const inputs = [lat, lon, lat1, lon1, lat2, lon2]
+    if (inputs.some(v => v === null || v === undefined || isNaN(v))) {
+        console.error(`🚨 [DIST ERROR] Invalid input detected`, inputs)
+        return Infinity
+    }
+
     const R = 6371000
 
     // convert to radians
-    const φ = lat * Math.PI/180
-    const λ = lon * Math.PI/180
+    const φ = lat * Math.PI / 180
+    const λ = lon * Math.PI / 180
 
-    const φ1 = lat1 * Math.PI/180
-    const λ1 = lon1 * Math.PI/180
+    const φ1 = lat1 * Math.PI / 180
+    const λ1 = lon1 * Math.PI / 180
 
-    const φ2 = lat2 * Math.PI/180
-    const λ2 = lon2 * Math.PI/180
+    const φ2 = lat2 * Math.PI / 180
+    const λ2 = lon2 * Math.PI / 180
 
     // project to local flat space (small distance approximation)
-    const x = (λ - λ1) * Math.cos((φ + φ1)/2)
+    const x = (λ - λ1) * Math.cos((φ + φ1) / 2)
     const y = (φ - φ1)
 
-    const x2 = (λ2 - λ1) * Math.cos((φ2 + φ1)/2)
+    const x2 = (λ2 - λ1) * Math.cos((φ2 + φ1) / 2)
     const y2 = (φ2 - φ1)
 
-    const t = Math.max(0, Math.min(1, (x*x2 + y*y2) / (x2*x2 + y2*y2 + 1e-12)))
+    const denom = (x2 * x2 + y2 * y2)
+
+    if (denom < 1e-12) {
+        console.warn(`⚠️ [DEGENERATE SEGMENT] A≈B → treating as point`)
+        const dx = x
+        const dy = y
+        const dist = Math.sqrt(dx * dx + dy * dy) * R
+        console.log(`📏 [POINT DIST] ${dist.toFixed(2)} m`)
+        return dist
+    }
+
+    let tRaw = (x * x2 + y * y2) / denom
+    let t = Math.max(0, Math.min(1, tRaw))
+
+    if (tRaw !== t) {
+        console.log(`🔧 [CLAMP] tRaw=${tRaw.toFixed(3)} → t=${t.toFixed(3)}`)
+    }
 
     const projX = t * x2
     const projY = t * y2
@@ -730,61 +890,118 @@ function pointToSegmentDistance(lat, lon, lat1, lon1, lat2, lon2) {
     const dx = x - projX
     const dy = y - projY
 
-    return Math.sqrt(dx*dx + dy*dy) * R
+    const dist = Math.sqrt(dx * dx + dy * dy) * R
+
+    // 🔍 sanity checks
+    if (!isFinite(dist)) {
+        console.error(`🚨 [DIST ERROR] Non-finite result`, { dx, dy, dist })
+        return Infinity
+    }
+
+    if (dist > 50000) {
+        console.warn(`⚠️ [LARGE DIST] ${dist.toFixed(1)} m`)
+    }
+
+    console.log(`📏 [DIST RESULT] ${dist.toFixed(2)} m`)
+    return dist
 }
 
 function checkShoreline(lat, lon) {
 
+    console.log(`🌍 [CHECK] lat=${lat}, lon=${lon}`)
+
     const baseLat = Math.floor(lat)
     const baseLon = Math.floor(lon)
 
-    // 🔁 check 3x3 tiles (same pattern as DEPARE)
+    console.log(`🧭 [BASE TILE] ${baseLat}_${baseLon}`)
+
+    let tilesChecked = 0
+    let landChecks = 0
+    let coastChecks = 0
+    let segmentsTested = 0
+
+    // 🔁 check 3x3 tiles
     for (let dLat = -1; dLat <= 1; dLat++) {
         for (let dLon = -1; dLon <= 1; dLon++) {
 
             const key = (baseLat + dLat) + "_" + (baseLon + dLon)
+            console.log(`📦 [TILE] Checking ${key}`)
 
             const tile = loadShorelineTile(key)
-            if (!tile) continue
+            tilesChecked++
+
+            if (!tile) {
+                console.log(`⛔ [TILE EMPTY] ${key}`)
+                continue
+            }
+
+            if (!tile.land || !tile.coast) {
+                console.warn(`⚠️ [BAD TILE FORMAT] ${key}`, Object.keys(tile))
+                continue
+            }
+
+            console.log(`📊 [TILE DATA] land=${tile.land.length}, coast=${tile.coast.length}`)
 
             // ===== 1️⃣ LAND POLYGONS =====
             for (const poly of tile.land) {
+                landChecks++
 
                 if (
                     lat < poly.minLat || lat > poly.maxLat ||
                     lon < poly.minLon || lon > poly.maxLon
-                ) continue
+                ) {
+                    continue
+                }
+
+                console.log(`🏝️ [LAND BBOX HIT]`)
+
+                if (!poly.poly) {
+                    console.warn(`⚠️ [BAD POLY FORMAT] missing poly field`)
+                    continue
+                }
 
                 if (pointInPolygon(lat, lon, poly.poly)) {
+                    console.log(`✅ [LAND HIT]`)
                     return 1
                 }
             }
 
             // ===== 2️⃣ COASTLINE DISTANCE =====
             for (const coast of tile.coast) {
+                coastChecks++
 
-                // 🔹 coarse bbox reject (feature level)
+                // 🔹 coarse bbox reject
                 if (
                     lat < coast.minLat || lat > coast.maxLat ||
                     lon < coast.minLon || lon > coast.maxLon
-                   ) continue
+                ) continue
+
+                console.log(`🌊 [COAST BBOX HIT]`)
 
                 const pts = coast.points
+
+                if (!pts || pts.length < 2) {
+                    console.warn(`⚠️ [BAD COAST GEOMETRY] points missing/too short`)
+                    continue
+                }
 
                 for (let i = 0; i < pts.length - 1; i++) {
 
                     const [lon1, lat1] = pts[i]
                     const [lon2, lat2] = pts[i + 1]
 
-                    // 🔥 NEW: segment-level fast reject (~90% skip)
+                    // 🔥 segment-level reject
                     if (
                         lat < Math.min(lat1, lat2) - 0.0001 ||
                         lat > Math.max(lat1, lat2) + 0.0001 ||
                         lon < Math.min(lon1, lon2) - 0.0001 ||
                         lon > Math.max(lon1, lon2) + 0.0001
-                       ) continue
+                    ) continue
 
-                    // 🔹 precise distance check (only for nearby segments)
+                    segmentsTested++
+
+                    console.log(`🔍 [SEGMENT TEST] (${lat1},${lon1}) → (${lat2},${lon2})`)
+
                     const d = pointToSegmentDistance(
                         lat, lon,
                         lat1, lon1,
@@ -792,6 +1009,7 @@ function checkShoreline(lat, lon) {
                     )
 
                     if (d <= 6) {
+                        console.log(`✅ [COAST HIT] distance=${d.toFixed(2)}m`)
                         return 1
                     }
                 }
@@ -799,31 +1017,13 @@ function checkShoreline(lat, lon) {
         }
     }
 
+    console.log(`❌ [NO HIT] tiles=${tilesChecked}, landChecks=${landChecks}, coastChecks=${coastChecks}, segments=${segmentsTested}`)
     return 0
 }
-
+////////////////////////////////////
 // ===== NOAA SERVER ENDS ====
+/////////////////////////////////
 // ✅ Correct way to initialize OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-// API endpoint for ChatGPT responses
-app.post("/api/chat", async (req, res) => {
-    try {
-        const { message } = req.body;
-
-        const response = await openai.chat.completions.create({
-            model: "gpt-4o",
-            messages: [{ role: "user", content: message }],
-        });
-
-        res.json({ reply: response.choices[0].message.content });
-    } catch (error) {
-        console.error("ChatGPT API Error:", error);
-        res.status(500).json({ error: "Failed to get a response from ChatGPT" });
-    }
-});
-
 app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`);
     next();
@@ -834,46 +1034,117 @@ app.get("/api", (req, res) => {
     res.json({ message: "Hello from Express API!" });
 });
 
+
+const soundingCache = {}
+
+function getSoundings(lat, lon) {
+  const key = tileKey(lat, lon)
+
+  if (soundingCache[key]) {
+    return soundingCache[key]
+  }
+
+  const file = `/home/georged/NOAAserver/ENC_ROOT/soundg_tiles/${key}.json`
+
+  try {
+    const data = JSON.parse(fs.readFileSync(file, "utf-8"))
+
+    soundingCache[key] = data
+    console.log(`📦 Soundings loaded: ${key}, count=${data.length}`)
+
+    return data
+  } catch (err) {
+    console.log(`❌ No sounding tile: ${key}`)
+    soundingCache[key] = []
+    return []
+  }
+}
+
+const contourCache = {}
+
+function getTileKey(lat, lon) {
+  const latKey = Math.floor(lat * 100)
+  const lonKey = Math.floor(lon * 100)
+
+  return `${latKey}_${lonKey}`
+}
+
+function getContours(lat, lon) {
+  const key = tileKey(lat, lon)
+
+  if (contourCache[key]) {
+    return contourCache[key]
+  }
+
+  const file = `/home/georged/NOAAserver/ENC_ROOT/depcnt_tiles/${key}.json`
+
+  try {
+    const raw = fs.readFileSync(file, "utf-8")
+
+    const data = raw
+      .trim()
+      .split("\n")
+      .map(line => JSON.parse(line))
+
+    contourCache[key] = data
+
+    console.log(`📦 Contours loaded: ${key}, count=${data.length}`)
+
+    return data
+
+  } catch (err) {
+    console.log(`❌ No contour tile: ${key}`)
+    contourCache[key] = []
+    return []
+  }
+}
+//////////////////////////////////////////////////
 app.get("/depth", depthLimiter, (req, res) => {
 
-    queue.push(async () => {   // ✅ THIS must be async
+  queue.push(async () => {
 
-        try {
-            const lat = parseFloat(req.query.lat)
-            const lon = parseFloat(req.query.lon)
+    try {
+      const lat = parseFloat(req.query.lat)
+      const lon = parseFloat(req.query.lon)
 
-            if (isNaN(lat) || isNaN(lon)) {
-                res.status(400).json({ error: "Invalid lat/lon" })
-                return
-            }
+      if (isNaN(lat) || isNaN(lon)) {
+        res.status(400).json({ error: "Invalid lat/lon" })
+        return
+      }
 
-            let depth = 1000
+      let depth = 1000
 
-            // ✅ await is OK here
-            depth = await getDepthFromBlueTopo(lat, lon)
+      // ✅ 1. ENC (your main algorithm)
+      depth = getDepthAtPoint(
+        { lat, lon },
+        getSoundings(lat, lon),   // your function
+        getContours(lat, lon),    // your function
+        null                      // BlueTopo handled outside
+      )
 
-            if (depth < 0) depth = Math.abs(depth)
+      // ✅ 2. BlueTopo fallback
+      if (depth === 1000) {
+        const bt = await getDepthFromBlueTopo(lat, lon)
 
-            if (depth === 1000) {
-                depth = getDepthFromENC(lat, lon)
-            }
-
-            if (depth === 1000) {
-                depth = getDepthFromDEPARE(lat, lon)
-            }
-
-            const obstacle = checkObstacle(lat, lon)
-            const shoreline = checkShoreline(lat, lon)
-
-            res.json({ depth, obstacle, shoreline })
-
-        } catch (err) {
-            console.error(err)
-            res.status(500).json({ error: "Server error" })
+        if (bt != null) {
+          depth = Math.abs(bt)   // normalize if needed
         }
-    })
+      }
 
-    processQueue()
+      // (DEPARE later if you want)
+
+      const obstacle = checkObstacle(lat, lon)
+      const shoreline = checkShoreline(lat, lon)
+
+      res.json({ depth, obstacle, shoreline })
+
+    } catch (err) {
+      console.error(err)
+      res.status(500).json({ error: "Server error" })
+    }
+  })
+
+  processQueue()
 })
 
 // ✅ Email sending route
