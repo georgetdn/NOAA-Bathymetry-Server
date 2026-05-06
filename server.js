@@ -509,12 +509,13 @@ function checkObstacle(lat, lon) {
       for (const obj of objects) {
 
         const d = wdistMeters(lat, lon, obj.lat, obj.lon)
+        console.log("Candidate dist:", d, "Obj:", obj.type, obj.lat, obj.lon)
 
         // ?? OPTIONAL FILTER (enable if needed)
         // if (!HARD_HAZARDS.has(obj.type)) continue
 
         // ? FIX: more realistic detection radius
-        if (d <= 20 && d < minDist) {
+        if (d <= 120 && d < minDist) {
           minDist = d
           closest = obj
         }
@@ -522,7 +523,12 @@ function checkObstacle(lat, lon) {
     }
   }
 
-  if (!closest) return null
+if (!closest) {
+  console.log("❌ No obstacle found near:", lat, lon)
+  return null
+}
+
+console.log("✅ Closest:", closest.type, "dist=", minDist)
 
   return {
     type: closest.type,
