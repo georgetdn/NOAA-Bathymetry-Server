@@ -7,8 +7,8 @@ const proj4 = require('proj4')
 proj4.defs("EPSG:26918", "+proj=utm +zone=18 +datum=NAD83 +units=m +no_defs")
 const WGS84 = 'EPSG:4326'
 const UTM18 = 'EPSG:26918'
-const ENC_ROOT = '/home/georged/NOAAserver/ENC_ROOT'
-const BLUE_ROOT = '/home/georged/NOAAserver/BLUE_TOP'
+const ENC_ROOT = '/var/data/enc/'
+const BLUE_ROOT = '/var/data/bluetopo'
 const MAX_CONCURRENT = 1
 let activeRequests = 0
 const queue = []
@@ -29,9 +29,20 @@ setInterval(() => {
 console.log("Loading BlueTopo index...")
 
 const app = express();
+const helmet = require("helmet");
+app.use(helmet());
+app.use((req, res, next) => {
+  req.setTimeout(5000); // 5 seconds
+  next();
+});
+app.disable("x-powered-by");
 
-app.use(cors());
+app.use(cors({
+  origin: ["https://y219.com", "https://www.y219.com"],
+  methods: ["GET", "POST"],
+}));
 app.use(express.json());   // 🔥 REQUIRED
+
 
 app.use((req, res, next) => {
     console.log("👉 Incoming request:", req.method, req.url);
@@ -72,6 +83,7 @@ console.log("BlueTopo index loaded")
 
 
 const rateLimit = require('express-rate-limit')
+const EMAIL_API_KEY = process.env.EMAIL_API_KEY || "CHANGE_THIS_SECRET"
 //  const app = express();
 app.set('trust proxy', 1);
 
@@ -79,6 +91,12 @@ const depthLimiter = rateLimit({
     windowMs: 1000,
     max: 5
 })
+const emailLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 3
+})
+
+
 ///////////////////////////
 //  ===== QUEUE  ======
 //////////////////////////
@@ -280,9 +298,9 @@ try {
         return 1000
     }
 }
-
+//  ===========================
 //  ====== DEPART FUNCTION  ===
-
+//  ===========================
 function getDepthFromDEPARE(lat, lon) {
 console.log("🔥 DEPARE START", lat, lon)
     // --- Base tile keys ---
@@ -433,8 +451,9 @@ function loadDepareTile(tileKey) {
 
     return data
 }
-
+// ================================
 // ===== OBSTRUCTIONS FUNCTIONS ====
+//  =================================
 let objectCache = {}
 const MAX_OBJECT_CACHE = 50
 
@@ -515,7 +534,7 @@ function checkObstacle(lat, lon) {
         // if (!HARD_HAZARDS.has(obj.type)) continue
 
         // ? FIX: more realistic detection radius
-        if (d <= 120 && d < minDist) {
+        if (d <= 7 && d < minDist) {
           minDist = d
           closest = obj
         }
@@ -1050,7 +1069,7 @@ function getSoundings(lat, lon) {
     return soundingCache[key]
   }
 
-  const file = `/home/georged/NOAAserver/ENC_ROOT/soundg_tiles/${key}.json`
+  const file = `${ENC_ROOT}/soundg_tiles/${key}.json`
 
   try {
     const data = JSON.parse(fs.readFileSync(file, "utf-8"))
@@ -1082,8 +1101,7 @@ function getContours(lat, lon) {
     return contourCache[key]
   }
 
-  const file = `/home/georged/NOAAserver/ENC_ROOT/depcnt_tiles/${key}.json`
-
+const file = `${ENC_ROOT}/depcnt_tiles/${key}.json`
   try {
     const raw = fs.readFileSync(file, "utf-8")
 
@@ -1113,9 +1131,12 @@ app.get("/depth", depthLimiter, (req, res) => {
       const lat = parseFloat(req.query.lat)
       const lon = parseFloat(req.query.lon)
 
-      if (isNaN(lat) || isNaN(lon)) {
-        res.status(400).json({ error: "Invalid lat/lon" })
-        return
+    if (
+       isNaN(lat) || isNaN(lon) ||
+       lat < -90 || lat > 90 ||
+       lon < -180 || lon > 180
+     ) {
+       return res.status(400).json({ error: "Invalid lat/lon" });
       }
 
       let depth = 1000
@@ -1153,11 +1174,53 @@ app.get("/depth", depthLimiter, (req, res) => {
   processQueue()
 })
 
-// ✅ Email sending route
-app.post("/send-email", async (req, res) => {
-    const { name, email, message } = req.body;
+function checkApiKey(req, res, next) {
+    const key = req.headers['x-api-key']
 
-    console.log("Received email request:", { name, email, message });
+    if (!key || key !== process.env.EMAIL_API_KEY) {
+        return res.status(403).json({ error: "Forbidden" })
+    }
+
+    next()
+}
+function checkOrigin(req, res, next) {
+    const allowed = [
+      "https://y219.com",
+      "https://www.y219.com",
+      "http://localhost:5173"
+    ]
+    const origin = req.headers.origin
+
+    if (!origin || !allowed.includes(origin)) {
+        console.log("Blocked origin:", origin)
+        return res.status(403).json({ error: "Forbidden" })
+    }
+
+    next()
+}
+const globalLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60
+});
+
+app.use(globalLimiter);
+// ================================
+// ==== ✅ Email sending route ====
+// ================================
+app.post("/send-email", emailLimiter, checkOrigin, async (req, res) => {
+    const { name, email, message } = req.body;
+if (!name || !email || !message) {
+    return res.status(400).json({ error: "Missing fields" })
+}
+
+if (!email.includes("@")) {
+    return res.status(400).json({ error: "Invalid email" })
+}
+
+if (message.length > 1000) {
+    return res.status(400).json({ error: "Message too long" })
+}
+
 let transporter = nodemailer.createTransport({
     host: "localhost",
     port: 25,
