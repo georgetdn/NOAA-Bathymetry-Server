@@ -146,7 +146,7 @@ bulk data downloads
 curl "https://y219.com/depth?lat=38.845&lon=-77.045"
 🧠 12. Key Design Philosophy
 
-Your system is:
+The system is:
 
 FAST > PERFECT
 REAL-TIME > COMPLETE
@@ -155,18 +155,11 @@ tile-based lookup
 fast fallback chain
 ✅ Final summary
 
-Your NOAA server:
+NOAA server:
 
 ✔ Combines multiple NOAA datasets
 ✔ Uses intelligent fallback logic
 ✔ Returns depth + hazards + shoreline
 ✔ Designed for real-time navigation safety
 
-👍 If you want next step
 
-I can help you:
-
-Write official API documentation page for your website
-Add rate limiting / API keys
-Add debug endpoint for visualization
-Or optimize memory (you’re at ~1.1GB)
