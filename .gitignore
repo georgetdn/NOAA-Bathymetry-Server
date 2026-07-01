@@ -23,3 +23,12 @@ Thumbs.db
 
 # Electron build output
 out/
+.env
+
+n.save
+server.js.files
+serverV1.js
+serverV2.js
+serverV3.js
+serverv4.js
+smsServer.js

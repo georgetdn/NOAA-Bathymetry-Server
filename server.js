@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("path");
 const cors = require("cors");
 const nodemailer = require("nodemailer");
+const mysql = require("mysql2/promise");
 const fs = require('fs')
 const proj4 = require('proj4')
 proj4.defs("EPSG:26918", "+proj=utm +zone=18 +datum=NAD83 +units=m +no_defs")
@@ -12,6 +13,38 @@ const BLUE_ROOT = '/var/data/bluetopo'
 const MAX_CONCURRENT = 1
 let activeRequests = 0
 const queue = []
+
+// ================================
+// ===== MariaDB configuration =====
+// ================================
+// Do NOT hard-code the MariaDB password here.
+// Set DB_PASSWORD in systemd or in the shell before starting node.
+const DB_HOST = process.env.DB_HOST || "localhost"
+const DB_USER = process.env.DB_USER || "noaa_user"
+const DB_PASSWORD = process.env.DB_PASSWORD || ""
+const DB_NAME = process.env.DB_NAME || "NOAAServer"
+
+// Default search radii. Change these in systemd/environment if needed.
+const DEPTH_RADIUS_M = Number(process.env.DEPTH_RADIUS_M || 5);
+
+// Used only after no exact 5-meter sounding is found.
+// This is for candidate soundings that will later be checked against contours.
+const ENC_CANDIDATE_RADIUS_M = Number(process.env.ENC_CANDIDATE_RADIUS_M || 500);
+
+const DEPARE_RADIUS_M = Number(process.env.DEPARE_RADIUS_M || DEPTH_RADIUS_M);
+const OBSTACLE_RADIUS_M = Number(process.env.OBSTACLE_RADIUS_M || 5);
+const SHORELINE_RADIUS_M = Number(process.env.SHORELINE_RADIUS_M || 5);
+
+const dbPool = mysql.createPool({
+    host: DB_HOST,
+    user: DB_USER,
+    password: DB_PASSWORD,
+    database: DB_NAME,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+})
+
 
 //console.log("Loading ENC index...")
 
@@ -32,7 +65,7 @@ const app = express();
 const helmet = require("helmet");
 app.use(helmet());
 app.use((req, res, next) => {
-  req.setTimeout(5000); // 5 seconds
+  req.setTimeout(15000); // 15 seconds - DB shoreline checks can take longer than file cache
   next();
 });
 app.disable("x-powered-by");
@@ -1045,6 +1078,499 @@ function checkShoreline(lat, lon) {
     console.log(`❌ [NO HIT] tiles=${tilesChecked}, landChecks=${landChecks}, coastChecks=${coastChecks}, segments=${segmentsTested}`)
     return 0
 }
+
+// ================================
+// ===== MariaDB NOAA functions ====
+// ================================
+function metersToLatDelta(meters) {
+    return meters / 111320.0
+}
+
+function metersToLonDelta(meters, lat) {
+    const cosLat = Math.cos(lat * Math.PI / 180)
+    if (Math.abs(cosLat) < 0.000001) {
+        return meters / 111320.0
+    }
+    return meters / (111320.0 * cosLat)
+}
+
+function makePointWkt(lat, lon) {
+    // WKT order is longitude latitude, not latitude longitude.
+    return `POINT(${lon} ${lat})`
+}
+
+function parseLineStringWkt(wkt) {
+    if (!wkt || !wkt.startsWith("LINESTRING(")) return []
+
+    const body = wkt
+        .replace("LINESTRING(", "")
+        .replace(")", "")
+
+    return body
+        .split(",")
+        .map(pair => {
+            const [lon, lat] = pair.trim().split(/\s+/).map(Number)
+            return { lat, lon }
+        })
+        .filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lon))
+}
+
+function pointToSegmentDistanceQuiet(lat, lon, lat1, lon1, lat2, lon2) {
+    const inputs = [lat, lon, lat1, lon1, lat2, lon2]
+    if (inputs.some(v => v === null || v === undefined || isNaN(v))) {
+        return Infinity
+    }
+
+    const R = 6371000
+
+    const phi = lat * Math.PI / 180
+    const lambda = lon * Math.PI / 180
+    const phi1 = lat1 * Math.PI / 180
+    const lambda1 = lon1 * Math.PI / 180
+    const phi2 = lat2 * Math.PI / 180
+    const lambda2 = lon2 * Math.PI / 180
+
+    const x = (lambda - lambda1) * Math.cos((phi + phi1) / 2)
+    const y = phi - phi1
+    const x2 = (lambda2 - lambda1) * Math.cos((phi2 + phi1) / 2)
+    const y2 = phi2 - phi1
+
+    const denom = x2 * x2 + y2 * y2
+
+    if (denom < 1e-12) {
+        return Math.sqrt(x * x + y * y) * R
+    }
+
+    const t = Math.max(0, Math.min(1, (x * x2 + y * y2) / denom))
+    const projX = t * x2
+    const projY = t * y2
+    const dx = x - projX
+    const dy = y - projY
+    const dist = Math.sqrt(dx * dx + dy * dy) * R
+
+    return Number.isFinite(dist) ? dist : Infinity
+}
+
+async function getDepthFromDb(lat, lon) {
+  const pointWkt = makePointWkt(lat, lon);
+
+  console.log(
+    `📍 DB DEPTH START lat=${lat} lon=${lon} ` +
+    `DEPTH_RADIUS_M=${DEPTH_RADIUS_M}m ` +
+    `ENC_CANDIDATE_RADIUS_M=${ENC_CANDIDATE_RADIUS_M}m ` +
+    `DEPARE_RADIUS_M=${DEPARE_RADIUS_M}m`
+  );
+
+  // ==================================================
+  // 1. Exact ENC sounding search within DEPTH_RADIUS_M
+  // ==================================================
+  const exactLatDelta = metersToLatDelta(DEPTH_RADIUS_M);
+  const exactLonDelta = metersToLonDelta(DEPTH_RADIUS_M, lat);
+
+  let exactRows = [];
+
+  try {
+    const [rows] = await dbPool.execute(
+      `
+      SELECT
+        id,
+        depth,
+        lat,
+        lon,
+        ST_AsText(geom) AS geom_text,
+        ST_DISTANCE_SPHERE(
+          geom,
+          ST_GeomFromText(?, 4326)
+        ) AS distance_m
+      FROM enc_soundings
+      WHERE lat BETWEEN ? AND ?
+        AND lon BETWEEN ? AND ?
+        AND ST_DISTANCE_SPHERE(
+          geom,
+          ST_GeomFromText(?, 4326)
+        ) <= ?
+      ORDER BY distance_m ASC
+      LIMIT 10
+      `,
+      [
+        pointWkt,
+
+        lat - exactLatDelta,
+        lat + exactLatDelta,
+        lon - exactLonDelta,
+        lon + exactLonDelta,
+
+        pointWkt,
+        DEPTH_RADIUS_M
+      ]
+    );
+
+    exactRows = rows;
+  } catch (err) {
+    console.error("🚨 DB exact ENC sounding query error:", err);
+  }
+
+  console.log(`📊 DB exact ENC candidates=${exactRows.length}`);
+
+  for (const row of exactRows) {
+    console.log(
+      `   EXACT ENC id=${row.id} depth=${row.depth} ` +
+      `lat=${row.lat} lon=${row.lon} ` +
+      `dist=${Number(row.distance_m).toFixed(2)}m`
+    );
+  }
+
+  if (exactRows.length > 0) {
+    const row = exactRows[0];
+
+    console.log(
+      `✅ DB exact ENC depth=${row.depth} ` +
+      `dist=${Number(row.distance_m).toFixed(2)}m`
+    );
+
+    return Number(row.depth);
+  }
+
+  // ==================================================
+  // 2. Candidate ENC sounding search
+  //    Used only when no 5-meter sounding exists.
+  //    Later: add DEPCNT contour-crossing rejection here.
+  // ==================================================
+  console.log(
+    `⚠️ No ENC sounding within ${DEPTH_RADIUS_M}m. ` +
+    `Searching candidate soundings within ${ENC_CANDIDATE_RADIUS_M}m...`
+  );
+
+  const candLatDelta = metersToLatDelta(ENC_CANDIDATE_RADIUS_M);
+  const candLonDelta = metersToLonDelta(ENC_CANDIDATE_RADIUS_M, lat);
+
+  let candidateRows = [];
+
+  try {
+    const [rows] = await dbPool.execute(
+      `
+      SELECT
+        id,
+        depth,
+        lat,
+        lon,
+        ST_AsText(geom) AS geom_text,
+        ST_DISTANCE_SPHERE(
+          geom,
+          ST_GeomFromText(?, 4326)
+        ) AS distance_m
+      FROM enc_soundings
+      WHERE lat BETWEEN ? AND ?
+        AND lon BETWEEN ? AND ?
+        AND ST_DISTANCE_SPHERE(
+          geom,
+          ST_GeomFromText(?, 4326)
+        ) <= ?
+      ORDER BY distance_m ASC
+      LIMIT 20
+      `,
+      [
+        pointWkt,
+
+        lat - candLatDelta,
+        lat + candLatDelta,
+        lon - candLonDelta,
+        lon + candLonDelta,
+
+        pointWkt,
+        ENC_CANDIDATE_RADIUS_M
+      ]
+    );
+
+    candidateRows = rows;
+  } catch (err) {
+    console.error("🚨 DB candidate ENC sounding query error:", err);
+  }
+
+  console.log(`📊 DB candidate ENC candidates=${candidateRows.length}`);
+
+  for (const row of candidateRows) {
+    console.log(
+      `   CANDIDATE ENC id=${row.id} depth=${row.depth} ` +
+      `lat=${row.lat} lon=${row.lon} ` +
+      `dist=${Number(row.distance_m).toFixed(2)}m`
+    );
+  }
+
+  if (candidateRows.length > 0) {
+    const row = candidateRows[0];
+
+    console.log(
+      `✅ DB candidate ENC depth=${row.depth} ` +
+      `dist=${Number(row.distance_m).toFixed(2)}m`
+    );
+
+    return Number(row.depth);
+  }
+
+  // ==================================================
+  // 3. DEPARE fallback
+  // ==================================================
+  console.log("⚠️ No ENC candidate found. Trying DEPARE...");
+
+  const depareLatDelta = metersToLatDelta(DEPARE_RADIUS_M);
+  const depareLonDelta = metersToLonDelta(DEPARE_RADIUS_M, lat);
+
+  let depareRows = [];
+
+  try {
+    const [rows] = await dbPool.execute(
+      `
+      SELECT
+        id,
+        drval1,
+        drval2,
+        min_lat AS lat,
+        min_lon AS lon,
+        ST_AsText(geom) AS geom_text,
+        ST_DISTANCE_SPHERE(
+          geom,
+          ST_GeomFromText(?, 4326)
+        ) AS distance_m
+      FROM depare_areas
+      WHERE min_lat BETWEEN ? AND ?
+        AND min_lon BETWEEN ? AND ?
+        AND ST_DISTANCE_SPHERE(
+          geom,
+          ST_GeomFromText(?, 4326)
+        ) <= ?
+      ORDER BY distance_m ASC
+      LIMIT 20
+      `,
+      [
+        pointWkt,
+
+        lat - depareLatDelta,
+        lat + depareLatDelta,
+        lon - depareLonDelta,
+        lon + depareLonDelta,
+
+        pointWkt,
+        DEPARE_RADIUS_M
+      ]
+    );
+
+    depareRows = rows;
+  } catch (err) {
+    console.error("🚨 DB DEPARE query error:", err);
+  }
+
+  console.log(`📊 DB DEPARE candidates=${depareRows.length}`);
+
+  for (const row of depareRows) {
+    console.log(
+      `   DEPARE id=${row.id} drval1=${row.drval1} drval2=${row.drval2} ` +
+      `lat=${row.lat} lon=${row.lon} ` +
+      `dist=${Number(row.distance_m).toFixed(2)}m`
+    );
+  }
+
+  if (depareRows.length > 0 && depareRows[0].drval1 != null) {
+    const row = depareRows[0];
+
+    console.log(
+      `✅ DB DEPARE depth=${row.drval1} ` +
+      `dist=${Number(row.distance_m).toFixed(2)}m`
+    );
+
+    return Number(row.drval1);
+  }
+
+  console.log("❌ DB depth not found. Returning 1000.");
+  return 1000;
+}
+
+async function getObstacleFromDb(lat, lon) {
+    const pointWkt = makePointWkt(lat, lon)
+    const latDelta = metersToLatDelta(OBSTACLE_RADIUS_M)
+    const lonDelta = metersToLonDelta(OBSTACLE_RADIUS_M, lat)
+
+    console.log(`🚧 DB OBSTACLE START lat=${lat} lon=${lon} radius=${OBSTACLE_RADIUS_M}m`)
+
+    const [rows] = await dbPool.execute(
+        `
+        SELECT
+            obj_type,
+            lat,
+            lon,
+            depth,
+            colour,
+            shape,
+            category,
+            name,
+            ST_DISTANCE_SPHERE(geom, ST_GeomFromText(?, 4326)) AS distance_m
+        FROM obstacles
+        WHERE lat BETWEEN ? AND ?
+          AND lon BETWEEN ? AND ?
+          AND ST_DISTANCE_SPHERE(geom, ST_GeomFromText(?, 4326)) <= ?
+        ORDER BY distance_m ASC
+        LIMIT 1
+        `,
+        [
+            pointWkt,
+            lat - latDelta,
+            lat + latDelta,
+            lon - lonDelta,
+            lon + lonDelta,
+            pointWkt,
+            OBSTACLE_RADIUS_M
+        ]
+    )
+
+    if (rows.length === 0) {
+        console.log("❌ DB obstacle not found")
+        return null
+    }
+
+    const row = rows[0]
+    console.log(`✅ DB obstacle=${row.obj_type} dist=${Number(row.distance_m).toFixed(2)}m`)
+
+    return {
+        type: row.obj_type,
+        distance: Number(row.distance_m),
+        lat: Number(row.lat),
+        lon: Number(row.lon),
+        colour: row.colour || null,
+        shape: row.shape || null,
+        name: row.name || null,
+        depth: row.depth == null ? null : Number(row.depth),
+        category: row.category || null
+    }
+}
+
+async function getShorelineFromDb(lat, lon) {
+  const pointWkt = makePointWkt(lat, lon);
+
+  console.log(
+    `🌊 DB SHORELINE START lat=${lat} lon=${lon} radius=${SHORELINE_RADIUS_M}m`
+  );
+
+  // ==================================================
+  // 1. Check if point is inside land polygon
+  // ==================================================
+  try {
+    const [landRows] = await dbPool.execute(
+      `
+      SELECT id
+      FROM shoreline_land
+      WHERE ? BETWEEN min_lat AND max_lat
+        AND ? BETWEEN min_lon AND max_lon
+        AND ST_CONTAINS(
+          geom,
+          ST_GeomFromText(?, 4326)
+        )
+      LIMIT 1
+      `,
+      [
+        lat,
+        lon,
+        pointWkt
+      ]
+    );
+
+    if (landRows.length > 0) {
+      console.log("✅ DB shoreline land hit");
+      return 1;
+    }
+  } catch (err) {
+    console.error("🚨 DB shoreline land query error:", err);
+    // Do not crash the whole request. Continue to coast check.
+  }
+
+  // ==================================================
+  // 2. Check distance to coastline using SPATIAL INDEX
+  // ==================================================
+  const latDelta = metersToLatDelta(SHORELINE_RADIUS_M);
+  const lonDelta = metersToLonDelta(SHORELINE_RADIUS_M, lat);
+
+  const minLat = lat - latDelta;
+  const maxLat = lat + latDelta;
+  const minLon = lon - lonDelta;
+  const maxLon = lon + lonDelta;
+
+  // IMPORTANT: WKT uses lon lat, not lat lon.
+  const bboxWkt =
+    `POLYGON((` +
+    `${minLon} ${minLat},` +
+    `${maxLon} ${minLat},` +
+    `${maxLon} ${maxLat},` +
+    `${minLon} ${maxLat},` +
+    `${minLon} ${minLat}` +
+    `))`;
+
+  console.log("🌊 DB shoreline bbox:", bboxWkt);
+
+  let coastRows = [];
+
+  try {
+    const [rows] = await dbPool.execute(
+      `
+      SELECT
+        id,
+        ST_AsText(geom) AS wkt
+      FROM shoreline_coast FORCE INDEX (idx_shoreline_coast_geom)
+      WHERE MBRIntersects(
+        geom,
+        ST_GeomFromText(?, 4326)
+      )
+      LIMIT 1000
+      `,
+      [bboxWkt]
+    );
+
+    coastRows = rows;
+  } catch (err) {
+    console.error("🚨 DB shoreline coast query error:", err);
+    return 0;
+  }
+
+  console.log(`🌊 DB shoreline coast candidates=${coastRows.length}`);
+
+  let closestDistance = Infinity;
+
+  for (const row of coastRows) {
+    const points = parseLineStringWkt(row.wkt);
+
+    if (!points || points.length < 2) {
+      continue;
+    }
+
+    for (let i = 0; i < points.length - 1; i++) {
+      const a = points[i];
+      const b = points[i + 1];
+
+      const d = pointToSegmentDistanceQuiet(
+        lat,
+        lon,
+        a.lat,
+        a.lon,
+        b.lat,
+        b.lon
+      );
+      if (d < closestDistance) {
+        closestDistance = d;
+      }
+
+      if (d <= SHORELINE_RADIUS_M) {
+        console.log(`✅ DB shoreline coast hit dist=${d.toFixed(2)}m`);
+        return 1;
+      }
+    }
+  }
+
+  console.log(
+    `❌ DB shoreline not found. candidates=${coastRows.length} closest=${
+      Number.isFinite(closestDistance) ? closestDistance.toFixed(2) : "none"
+    }m`
+  );
+
+  return 0;
+}
 ////////////////////////////////////
 // ===== NOAA SERVER ENDS ====
 /////////////////////////////////
@@ -1131,42 +1657,34 @@ app.get("/depth", depthLimiter, (req, res) => {
       const lat = parseFloat(req.query.lat)
       const lon = parseFloat(req.query.lon)
 
-    if (
-       isNaN(lat) || isNaN(lon) ||
-       lat < -90 || lat > 90 ||
-       lon < -180 || lon > 180
-     ) {
-       return res.status(400).json({ error: "Invalid lat/lon" });
+      if (
+        isNaN(lat) || isNaN(lon) ||
+        lat < -90 || lat > 90 ||
+        lon < -180 || lon > 180
+      ) {
+        return res.status(400).json({ error: "Invalid lat/lon" })
       }
 
-      let depth = 1000
+      console.log(`\n==============================`)
+      console.log(`📡 DB /depth request lat=${lat} lon=${lon}`)
+      console.log(`DEPTH_RADIUS_M=${DEPTH_RADIUS_M}`);
+      console.log(`ENC_CANDIDATE_RADIUS_M=${ENC_CANDIDATE_RADIUS_M}`);
+      console.log(`DEPARE_RADIUS_M=${DEPARE_RADIUS_M}`);
+      console.log(`OBSTACLE_RADIUS_M=${OBSTACLE_RADIUS_M}`);
+      console.log(`SHORELINE_RADIUS_M=${SHORELINE_RADIUS_M}`);
+      console.log(`==============================`)
 
-      // ✅ 1. ENC (your main algorithm)
-      depth = getDepthAtPoint(
-        { lat, lon },
-        getSoundings(lat, lon),   // your function
-        getContours(lat, lon),    // your function
-        null                      // BlueTopo handled outside
-      )
+      const depth = await getDepthFromDb(lat, lon)
+      const obstacle = await getObstacleFromDb(lat, lon)
+      const shoreline = await getShorelineFromDb(lat, lon)
 
-      // ✅ 2. BlueTopo fallback
-      if (depth === 1000) {
-        const bt = await getDepthFromBlueTopo(lat, lon)
+      const response = { depth, obstacle, shoreline }
+      console.log("✅ DB RESPONSE:", response)
 
-        if (bt != null) {
-          depth = Math.abs(bt)   // normalize if needed
-        }
-      }
-
-      // (DEPARE later if you want)
-
-      const obstacle = checkObstacle(lat, lon)
-      const shoreline = checkShoreline(lat, lon)
-
-      res.json({ depth, obstacle, shoreline })
+      res.json(response)
 
     } catch (err) {
-      console.error(err)
+      console.error("🚨 DB /depth error:", err)
       res.status(500).json({ error: "Server error" })
     }
   })

@@ -29,15 +29,6 @@ const ServicesPage = () => {
                 <li><strong>Network Security:</strong> Cyber threats are constantly evolving, and businesses must stay protected. Our network security services include firewall setup, intrusion detection, encryption, and vulnerability assessments to safeguard your data from hackers and unauthorized access.</li>
                 <li  id="bottom-services"><strong>Managed IT Services:</strong> Managing IT infrastructure can be complex and time-consuming. Our managed IT services provide proactive monitoring, regular maintenance, and round-the-clock support to keep your systems running smoothly.</li>
                 <li><strong>Website Development & Maintenance:</strong> A well-designed website is crucial for any business. Our web development services include custom website design, e-commerce integration, responsive layouts, and SEO optimization.</li>
-                <li ><strong>Sample Websites</strong>
-                <ul >
-                    <li><a href = "https://estatesale21.com/">eCommence</a></li>
-                    <li><a href = "https://zacharyasnyder.com/">Personal</a></li>
-                    <li><a href = "https://pharm.websample219.com/">Not-for-profit organization</a></li>
-                    <li><a href = "https://boat-canvas.y219.com">Boat Canvas Business</a></li>
-                    <li><a href = "https://restaurant.y219.com">Restaurant</a></li>
-                </ul>   
-                </li> 
                 <li><strong>Home & Office Networks</strong> We provide expert network design, installation, and maintenance services for home and office environments. Our team ensures your network is secure, reliable, and optimized for your needs.</li>
                 <li><strong>Software Development:</strong> We offer custom software development services to create tailored solutions for your business. Whether you need a mobile app, web application, or database management system, our team can deliver high-quality software that meets your requirements.</li>
                 <li><strong>Remote IT Support:</strong> Our remote IT support services provide businesses with instant access to technical assistance. Whether you're facing software issues, network problems, or cybersecurity threats, our team can resolve your IT challenges quickly and efficiently.</li>

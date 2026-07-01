@@ -19,6 +19,7 @@
     "express-rate-limit": "^6.11.2",
     "geotiff": "^3.0.5",
     "helmet": "^8.1.0",
+    "mysql2": "^3.22.5",
     "nodemailer": "^8.0.7",
     "openai": "^4.87.3",
     "proj4": "^2.20.8",
