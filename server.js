@@ -684,45 +684,62 @@ function getDepthAtPoint(P, soundings, contours) {
    return 1000
 }
 
+function contourHasValidDepth(contour) {
+  const d = Number(contour.depth);
+
+  return (
+    contour.depth !== null &&
+    contour.depth !== undefined &&
+    contour.depth !== "" &&
+    Number.isFinite(d)
+  );
+}
+
 function countContourCrossings(L, contours, soundingDepth) {
-  let count = 0
+  let count = 0;
 
   for (const contour of contours) {
-    
-    if (!bboxIntersectsSegment(contour.bbox, L)) continue
+    // Ignore contours that do not have a usable depth.
+    // A no-depth contour should not block selecting the closest sounding.
+    if (!contourHasValidDepth(contour)) {
+      continue;
+    }
 
-    let lastHitKey = null
+    if (!bboxIntersectsSegment(contour.bbox, L)) continue;
+
+    let lastHitKey = null;
 
     for (let i = 0; i < contour.points.length - 1; i++) {
-      const A = contour.points[i]
-      const B = contour.points[i + 1]
+      const A = contour.points[i];
+      const B = contour.points[i + 1];
 
-      if (!segmentHits(L[0], L[1], A, B)) continue
+      if (!segmentHits(L[0], L[1], A, B)) continue;
 
       // vertex detection
-      let hitPoint = null
-      if (onSegment(L[0], L[1], A)) hitPoint = A
-      else if (onSegment(L[0], L[1], B)) hitPoint = B
-      else if (onSegment(A, B, L[0])) hitPoint = L[0]
-      else if (onSegment(A, B, L[1])) hitPoint = L[1]
+      let hitPoint = null;
+      if (onSegment(L[0], L[1], A)) hitPoint = A;
+      else if (onSegment(L[0], L[1], B)) hitPoint = B;
+      else if (onSegment(A, B, L[0])) hitPoint = L[0];
+      else if (onSegment(A, B, L[1])) hitPoint = L[1];
 
       const key = hitPoint
         ? `${hitPoint.lon.toFixed(7)},${hitPoint.lat.toFixed(7)}`
-        : null
+        : null;
 
       // dedup vertex
-      if (hitPoint && key === lastHitKey) continue
-      if (hitPoint) lastHitKey = key
+      if (hitPoint && key === lastHitKey) continue;
+      if (hitPoint) lastHitKey = key;
 
-      count++
+      count++;
 
-      // ⚡ early exit
-      if (count > 0) return { count }   // early exit: any crossing blocks
+      // early exit: any valid-depth contour crossing blocks this sounding
+      if (count > 0) return { count };
     }
   }
 
-  return { count }
+  return { count };
 }
+
 function segmentHits(P, S, A, B) {
   if (collinearOverlap(P, S, A, B)) return true
 
@@ -1151,16 +1168,15 @@ function pointToSegmentDistanceQuiet(lat, lon, lat1, lon1, lat2, lon2) {
     return Number.isFinite(dist) ? dist : Infinity
 }
 
-async function getDepthFromDb(lat, lon) {
+async function getDepthFromDb(lat, lon, reqId = "noid") {
   const pointWkt = makePointWkt(lat, lon);
 
   console.log(
-    `📍 DB DEPTH START lat=${lat} lon=${lon} ` +
+    `🧭 [${reqId}] DB DEPTH START lat=${lat} lon=${lon} ` +
     `DEPTH_RADIUS_M=${DEPTH_RADIUS_M}m ` +
     `ENC_CANDIDATE_RADIUS_M=${ENC_CANDIDATE_RADIUS_M}m ` +
     `DEPARE_RADIUS_M=${DEPARE_RADIUS_M}m`
-  );
-
+   );
   // ==================================================
   // 1. Exact ENC sounding search within DEPTH_RADIUS_M
   // ==================================================
@@ -1170,6 +1186,7 @@ async function getDepthFromDb(lat, lon) {
   let exactRows = [];
 
   try {
+    console.log(`🧭 [${reqId}] DB exact ENC query start radius=${DEPTH_RADIUS_M}m`);
     const [rows] = await dbPool.execute(
       `
       SELECT
@@ -1210,8 +1227,7 @@ async function getDepthFromDb(lat, lon) {
     console.error("🚨 DB exact ENC sounding query error:", err);
   }
 
-  console.log(`📊 DB exact ENC candidates=${exactRows.length}`);
-
+  console.log(`🧭 [${reqId}] DB exact ENC candidates=${exactRows.length}`);
   for (const row of exactRows) {
     console.log(
       `   EXACT ENC id=${row.id} depth=${row.depth} ` +
@@ -1224,13 +1240,14 @@ async function getDepthFromDb(lat, lon) {
     const row = exactRows[0];
 
     console.log(
-      `✅ DB exact ENC depth=${row.depth} ` +
-      `dist=${Number(row.distance_m).toFixed(2)}m`
+      `🧭 [${reqId}] DB DEPTH SELECTED source=exact_enc_sounding ` +
+      `id=${row.id} depth=${row.depth} ` +
+      `distance=${Number(row.distance_m).toFixed(2)}m ` +
+      `lat=${row.lat} lon=${row.lon}`
     );
 
     return Number(row.depth);
-  }
-
+   }
   // ==================================================
   // 2. Candidate ENC sounding search
   //    Used only when no 5-meter sounding exists.
@@ -1247,6 +1264,7 @@ async function getDepthFromDb(lat, lon) {
   let candidateRows = [];
 
   try {
+    console.log(`🧭 [${reqId}] DB candidate ENC query start radius=${ENC_CANDIDATE_RADIUS_M}m`);
     const [rows] = await dbPool.execute(
       `
       SELECT
@@ -1287,8 +1305,7 @@ async function getDepthFromDb(lat, lon) {
     console.error("🚨 DB candidate ENC sounding query error:", err);
   }
 
-  console.log(`📊 DB candidate ENC candidates=${candidateRows.length}`);
-
+  console.log(`🧭 [${reqId}] DB candidate ENC candidates=${candidateRows.length}`);
   for (const row of candidateRows) {
     console.log(
       `   CANDIDATE ENC id=${row.id} depth=${row.depth} ` +
@@ -1297,17 +1314,65 @@ async function getDepthFromDb(lat, lon) {
     );
   }
 
-  if (candidateRows.length > 0) {
-    const row = candidateRows[0];
+let closestRejectedCandidate = null;
+
+if (candidateRows.length > 0) {
+  closestRejectedCandidate = candidateRows[0];
+
+  const P = {
+    lat: Number(lat),
+    lon: Number(lon)
+  };
+
+  const contours = getContours(lat, lon);
+const usableContours = contours.filter(contourHasValidDepth);
+const ignoredContours = contours.length - usableContours.length;
+
+console.log(
+  `🧭 [${reqId}] DB DEPCNT contour check start ` +
+  `contours=${contours.length} usable=${usableContours.length} ` +
+  `ignored_no_depth=${ignoredContours} tile=${tileKey(lat, lon)}`
+);
+
+  for (let i = 0; i < candidateRows.length; i++) {
+    const row = candidateRows[i];
+
+    const S = {
+      lat: Number(row.lat),
+      lon: Number(row.lon),
+      depth: Number(row.depth)
+    };
+
+    const { count } = countContourCrossings([P, S], usableContours, S.depth);
+    console.log(
+      `🧭 [${reqId}] DB CONTOUR CHECK candidate#${i + 1} ` +
+      `id=${row.id} depth=${row.depth} ` +
+      `distance=${Number(row.distance_m).toFixed(2)}m ` +
+      `crossings=${count}`
+    );
+
+    if (count !== 0) {
+      console.log(
+        `🧭 [${reqId}] DB CANDIDATE REJECTED contour_crossing ` +
+        `id=${row.id} depth=${row.depth}`
+      );
+      continue;
+    }
 
     console.log(
-      `✅ DB candidate ENC depth=${row.depth} ` +
-      `dist=${Number(row.distance_m).toFixed(2)}m`
+      `🧭 [${reqId}] DB DEPTH SELECTED source=candidate_enc_sounding_contour_checked ` +
+      `id=${row.id} depth=${row.depth} ` +
+      `distance=${Number(row.distance_m).toFixed(2)}m ` +
+      `lat=${row.lat} lon=${row.lon}`
     );
 
     return Number(row.depth);
   }
 
+  console.log(
+    `🧭 [${reqId}] DB all candidate ENC soundings rejected by contour check. Trying DEPARE...`
+  );
+}
   // ==================================================
   // 3. DEPARE fallback
   // ==================================================
@@ -1319,6 +1384,7 @@ async function getDepthFromDb(lat, lon) {
   let depareRows = [];
 
   try {
+    console.log(`🧭 [${reqId}] DB DEPARE query start radius=${DEPARE_RADIUS_M}m`);
     const [rows] = await dbPool.execute(
       `
       SELECT
@@ -1360,8 +1426,7 @@ async function getDepthFromDb(lat, lon) {
     console.error("🚨 DB DEPARE query error:", err);
   }
 
-  console.log(`📊 DB DEPARE candidates=${depareRows.length}`);
-
+  console.log(`🧭 [${reqId}] DB DEPARE candidates=${depareRows.length}`);
   for (const row of depareRows) {
     console.log(
       `   DEPARE id=${row.id} drval1=${row.drval1} drval2=${row.drval2} ` +
@@ -1374,17 +1439,28 @@ async function getDepthFromDb(lat, lon) {
     const row = depareRows[0];
 
     console.log(
-      `✅ DB DEPARE depth=${row.drval1} ` +
-      `dist=${Number(row.distance_m).toFixed(2)}m`
+      `🧭 [${reqId}] DB DEPTH SELECTED source=depare ` +
+      `id=${row.id} depth=${row.drval1} drval2=${row.drval2} ` +
+      `distance=${Number(row.distance_m).toFixed(2)}m ` +
+      `lat=${row.lat} lon=${row.lon}`
     );
 
     return Number(row.drval1);
   }
+if (closestRejectedCandidate) {
+  console.log(
+    `🧭 [${reqId}] DB DEPTH FALLBACK source=nearest_enc_sounding_after_all_contours_rejected ` +
+    `id=${closestRejectedCandidate.id} depth=${closestRejectedCandidate.depth} ` +
+    `distance=${Number(closestRejectedCandidate.distance_m).toFixed(2)}m ` +
+    `lat=${closestRejectedCandidate.lat} lon=${closestRejectedCandidate.lon}`
+  );
 
-  console.log("❌ DB depth not found. Returning 1000.");
-  return 1000;
+  return Number(closestRejectedCandidate.depth);
 }
 
+console.log(`🧭 [${reqId}] DB depth not found. Returning 1000.`);
+return 1000;
+}
 async function getObstacleFromDb(lat, lon) {
     const pointWkt = makePointWkt(lat, lon)
     const latDelta = metersToLatDelta(OBSTACLE_RADIUS_M)
@@ -1571,6 +1647,7 @@ async function getShorelineFromDb(lat, lon) {
 
   return 0;
 }
+
 ////////////////////////////////////
 // ===== NOAA SERVER ENDS ====
 /////////////////////////////////
@@ -1657,6 +1734,7 @@ app.get("/depth", depthLimiter, (req, res) => {
       const lat = parseFloat(req.query.lat)
       const lon = parseFloat(req.query.lon)
 
+
       if (
         isNaN(lat) || isNaN(lon) ||
         lat < -90 || lat > 90 ||
@@ -1664,6 +1742,8 @@ app.get("/depth", depthLimiter, (req, res) => {
       ) {
         return res.status(400).json({ error: "Invalid lat/lon" })
       }
+      const reqId = Math.random().toString(36).slice(2, 8);
+      console.log(`🧭 [${reqId}] DEPTH REQUEST lat=${lat} lon=${lon}`);
 
       console.log(`\n==============================`)
       console.log(`📡 DB /depth request lat=${lat} lon=${lon}`)
@@ -1674,13 +1754,13 @@ app.get("/depth", depthLimiter, (req, res) => {
       console.log(`SHORELINE_RADIUS_M=${SHORELINE_RADIUS_M}`);
       console.log(`==============================`)
 
-      const depth = await getDepthFromDb(lat, lon)
+      const depth = await getDepthFromDb(lat, lon, reqId)
+      console.log(`🧭 [${reqId}] DB DEPTH DONE depth=${depth}`);
       const obstacle = await getObstacleFromDb(lat, lon)
       const shoreline = await getShorelineFromDb(lat, lon)
 
       const response = { depth, obstacle, shoreline }
-      console.log("✅ DB RESPONSE:", response)
-
+      console.log(`🧭 [${reqId}] ✅ DB RESPONSE`, response);
       res.json(response)
 
     } catch (err) {
