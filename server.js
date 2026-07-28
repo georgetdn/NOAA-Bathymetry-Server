@@ -11,6 +11,7 @@ const UTM18 = 'EPSG:26918'
 const ENC_ROOT = '/var/data/enc/'
 const BLUE_ROOT = '/var/data/bluetopo'
 const MAX_CONCURRENT = 8
+const MAX_QUEUE = 100;     // Maximum requests waiting in the queue
 let activeRequests = 0
 const queue = []
 
@@ -46,11 +47,11 @@ const dbPool = mysql.createPool({
 })
 
 
-//console.log("Loading ENC index...")
+console.log("Loading ENC index...")
 
 setInterval(() => {
     const m = process.memoryUsage()
-    //console.log(`MEM → ${(m.heapUsed/1024/1024).toFixed(0)} MB`)
+    console.log(`MEM → ${(m.heapUsed/1024/1024).toFixed(0)} MB`)
 }, 3000)
 
 //  ===== load index =====
@@ -58,8 +59,8 @@ setInterval(() => {
 //    fs.readFileSync(`${ENC_ROOT}/enc_soundg_index_clean.json`, 'utf-8')
 //)
 
-//console.log("ENC index loaded")
-//console.log("Loading BlueTopo index...")
+console.log("ENC index loaded")
+console.log("Loading BlueTopo index...")
 
 const app = express();
 const helmet = require("helmet");
@@ -78,7 +79,7 @@ app.use(express.json());   // 🔥 REQUIRED
 
 
 app.use((req, res, next) => {
-    //console.log("👉 Incoming request:", req.method, req.url);
+    console.log("👉 Incoming request:", req.method, req.url);
     next();
 });
 const rawBlueTopo = JSON.parse(
@@ -112,7 +113,7 @@ const bluetopoTiles = rawBlueTopo
     })
     .filter(Boolean) // remove bad tiles
 
-//console.log("BlueTopo index loaded")
+console.log("BlueTopo index loaded")
 
 
 const rateLimit = require('express-rate-limit')
@@ -140,11 +141,11 @@ function processQueue() {
 
     const next = queue.shift()
     activeRequests++
-//console.log(`***QUEUE*** → active=${activeRequests} waiting=${queue.length}`)
+console.log(`***QUEUE*** → active=${activeRequests} waiting=${queue.length}`)
 
     next().finally(() => {
         activeRequests--
- //console.log(`****QUEUE DONE**** → active=${activeRequests} waiting=${queue.length}`)
+ console.log(`****QUEUE DONE**** → active=${activeRequests} waiting=${queue.length}`)
 
         processQueue()
     })
@@ -266,7 +267,7 @@ try {
         xCoord < bbox[0] || xCoord > bbox[2] ||
         yCoord < bbox[1] || yCoord > bbox[3]
     ) {
-        //console.log("Outside tile bbox (projected)")
+        console.log("Outside tile bbox (projected)")
         return 1000
     }
 
@@ -322,7 +323,7 @@ try {
             return 1000
         }
 
-        //console.log("Found Blue Top depth:", depth)
+        console.log("Found Blue Top depth:", depth)
 
         return depth
 
@@ -335,7 +336,7 @@ try {
 //  ====== DEPART FUNCTION  ===
 //  ===========================
 function getDepthFromDEPARE(lat, lon) {
-//console.log("🔥 DEPARE START", lat, lon)
+console.log("🔥 DEPARE START", lat, lon)
     // --- Base tile keys ---
     const baseLat = Math.floor(lat)
 
@@ -366,7 +367,7 @@ function getDepthFromDEPARE(lat, lon) {
                for (const poly of polygons) {
     // 🔍 DEBUG (only once)
     if (!global.__bboxCheck) {
-        //console.log("BBOX:", poly.minLat, poly.maxLat, poly.minLon, poly.maxLon)
+        console.log("BBOX:", poly.minLat, poly.maxLat, poly.minLon, poly.maxLon)
         global.__bboxCheck = true
     }
                    if (
@@ -381,9 +382,9 @@ function getDepthFromDEPARE(lat, lon) {
 
                    // 🔥 print only once
                    if (!global.__printedPolyShape) {
-                       //console.log("Poly shape:", JSON.stringify(poly.poly).slice(0, 200))
-                       //console.log("Point (lat,lon):", lat, lon)
-                       //console.log("First poly point:", poly.poly[0])
+                       console.log("Poly shape:", JSON.stringify(poly.poly).slice(0, 200))
+                       console.log("Point (lat,lon):", lat, lon)
+                       console.log("First poly point:", poly.poly[0])
                        global.__printedPolyShape = true
                    }
 
@@ -397,7 +398,7 @@ function getDepthFromDEPARE(lat, lon) {
             }
         }
     }
-//console.log("🔥 DEPARE RESULT:", minDepth)
+console.log("🔥 DEPARE RESULT:", minDepth)
     // 🔥 IMPORTANT: do NOT convert to 0
     if (minDepth === 1000) {
         return 1000   // means "no data"
@@ -454,7 +455,7 @@ function loadDepareTile(tileKey) {
         return depareCache[tileKey]
     }
 
-    //console.log(`Loading DEPARE tile: ${tileKey}`)
+    console.log(`Loading DEPARE tile: ${tileKey}`)
 
     const tilePath = `${ENC_ROOT}/depare_tiles/${tileKey}.json`
 
@@ -561,7 +562,7 @@ function checkObstacle(lat, lon) {
       for (const obj of objects) {
 
         const d = wdistMeters(lat, lon, obj.lat, obj.lon)
-        //console.log("Candidate dist:", d, "Obj:", obj.type, obj.lat, obj.lon)
+        console.log("Candidate dist:", d, "Obj:", obj.type, obj.lat, obj.lon)
 
         // ?? OPTIONAL FILTER (enable if needed)
         // if (!HARD_HAZARDS.has(obj.type)) continue
@@ -576,11 +577,11 @@ function checkObstacle(lat, lon) {
   }
 
 if (!closest) {
-  //console.log("❌ No obstacle found near:", lat, lon)
+  console.log("❌ No obstacle found near:", lat, lon)
   return null
 }
 
-//console.log("✅ Closest:", closest.type, "dist=", minDist)
+console.log("✅ Closest:", closest.type, "dist=", minDist)
 
   return {
     type: closest.type,
@@ -624,10 +625,10 @@ function tileKey(lat, lon) {
   const lonKey = Math.floor(lon * TILE_SCALE)
   return `${latKey}_${lonKey}`
 }
-//console.log(tileKey(38.828, -77.032))
+console.log(tileKey(38.828, -77.032))
 
 function getNearestSoundings(P, soundings) {
-  //console.log("getNearestSoundings loaded")
+  console.log("getNearestSoundings loaded")
 
   return soundings
     .map(s => ({ ...s, _dist: distance(P, s) }))
@@ -651,32 +652,32 @@ function distance(a, b) {
 }
 
 function getDepthAtPoint(P, soundings, contours) {
-  //console.log(`\n📍 ENC DEPTH → lat=${P.lat}, lon=${P.lon}`)
+  console.log(`\n📍 ENC DEPTH → lat=${P.lat}, lon=${P.lon}`)
 
   const candidates = getNearestSoundings(P, soundings)
 
-  //console.log(`📊 Candidates: ${candidates.length}`)
+  console.log(`📊 Candidates: ${candidates.length}`)
 
   for (let i = 0; i < candidates.length; i++) {
     const S = candidates[i]
     const dist = distance(P, S)
 
-    //console.log(`➡️ S#${i + 1}: depth=${S.depth}, dist=${dist.toFixed(1)}m`)
+    console.log(`➡️ S#${i + 1}: depth=${S.depth}, dist=${dist.toFixed(1)}m`)
 
     const { count } = countContourCrossings([P, S], contours, S.depth)
 
-    //console.log(`🧮 Crossings=${count}`)
+    console.log(`🧮 Crossings=${count}`)
 
     if (count  !== 0) {
-      //console.log(`❌ Reject (odd)`)
+      console.log(`❌ Reject (odd)`)
       continue
     }
 
-    //console.log(`✅ Accept → depth=${S.depth}`)
+    console.log(`✅ Accept → depth=${S.depth}`)
     return S.depth
   }
 
-  //console.log(`❌ ENC failed`)
+  console.log(`❌ ENC failed`)
   if (candidates.length > 0) {
      console.log(`⚠️ Fallback → nearest sounding`)
      return candidates[0].depth
@@ -820,16 +821,16 @@ let shorelineCache = {}
 const MAX_SHORELINE_CACHE = 50
 
 function loadShorelineTile(tileKey) {
-    //console.log(`🌊 [SHORELINE] Request tileKey=${tileKey}`)
+    console.log(`🌊 [SHORELINE] Request tileKey=${tileKey}`)
 
     // ✅ cache hit (including null)
     if (tileKey in shorelineCache) {
-        //console.log(`⚡ [CACHE HIT] tileKey=${tileKey} value=${shorelineCache[tileKey] ? 'DATA' : 'NULL'}`)
+        console.log(`⚡ [CACHE HIT] tileKey=${tileKey} value=${shorelineCache[tileKey] ? 'DATA' : 'NULL'}`)
         return shorelineCache[tileKey]
     }
 
     const file = `${ENC_ROOT}/shoreline_tiles/${tileKey}.json`
-    //console.log(`📁 [FILE PATH] ${file}`)
+    console.log(`📁 [FILE PATH] ${file}`)
 
     // 🔥 cache negative result
     if (!fs.existsSync(file)) {
@@ -841,7 +842,7 @@ function loadShorelineTile(tileKey) {
     // 📊 file stats
     try {
         const stats = fs.statSync(file)
-        //console.log(`📦 [FILE SIZE] ${stats.size} bytes`)
+        console.log(`📦 [FILE SIZE] ${stats.size} bytes`)
     } catch (err) {
         console.error(`⚠️ [STAT ERROR] ${file}`, err.message)
     }
@@ -866,8 +867,8 @@ function loadShorelineTile(tileKey) {
     }
 
     // 🔍 Inspect structure
-    //console.log(`🧪 [DATA KEYS]`, Object.keys(data))
-/*
+    console.log(`🧪 [DATA KEYS]`, Object.keys(data))
+
     if (data.land) {
         console.log(`🏝️ [LAND COUNT] ${data.land.length}`)
     } else {
@@ -879,42 +880,42 @@ function loadShorelineTile(tileKey) {
     } else {
         console.warn(`⚠️ [NO COAST FIELD]`)
     }
-*/
+
     // 🔍 sample geometry (first feature)
     if (data.coast && data.coast.length > 0) {
         const sample = data.coast[0]
-        /*console.log(`🔹 [COAST SAMPLE] points=${sample.points?.length} bbox=`,
+        console.log(`🔹 [COAST SAMPLE] points=${sample.points?.length} bbox=`,
             sample.minLat, sample.maxLat, sample.minLon, sample.maxLon
         )
-*/
+
     }
 
     if (data.land && data.land.length > 0) {
         const sample = data.land[0]
-        /*console.log(`🔹 [LAND SAMPLE] points=${sample.points?.length} bbox=`,
+        console.log(`🔹 [LAND SAMPLE] points=${sample.points?.length} bbox=`,
             sample.minLat, sample.maxLat, sample.minLon, sample.maxLon
-        )*/
+        )
     }
 
     // 🔥 INSERT FIRST
     shorelineCache[tileKey] = data
-    //console.log(`💾 [CACHE STORE] tileKey=${tileKey}`)
+    console.log(`💾 [CACHE STORE] tileKey=${tileKey}`)
 
     // 🔥 THEN enforce limit
     const keys = Object.keys(shorelineCache)
     if (keys.length > MAX_SHORELINE_CACHE) {
         const removed = keys[0]
         delete shorelineCache[removed]
-        //console.log(`🧹 [CACHE EVICT] removed=${removed}`)
+        console.log(`🧹 [CACHE EVICT] removed=${removed}`)
     }
 
-    //console.log(`✅ [DONE] tileKey=${tileKey}`)
+    console.log(`✅ [DONE] tileKey=${tileKey}`)
     return data
 }
 
 function pointToSegmentDistance(lat, lon, lat1, lon1, lat2, lon2) {
 
-    //console.log(`📏 [DIST] Input P=(${lat},${lon}) A=(${lat1},${lon1}) B=(${lat2},${lon2})`)
+    console.log(`📏 [DIST] Input P=(${lat},${lon}) A=(${lat1},${lon1}) B=(${lat2},${lon2})`)
 
     // 🚨 validate inputs early
     const inputs = [lat, lon, lat1, lon1, lat2, lon2]
@@ -949,17 +950,17 @@ function pointToSegmentDistance(lat, lon, lat1, lon1, lat2, lon2) {
         const dx = x
         const dy = y
         const dist = Math.sqrt(dx * dx + dy * dy) * R
-        //console.log(`📏 [POINT DIST] ${dist.toFixed(2)} m`)
+        console.log(`📏 [POINT DIST] ${dist.toFixed(2)} m`)
         return dist
     }
 
     let tRaw = (x * x2 + y * y2) / denom
     let t = Math.max(0, Math.min(1, tRaw))
-/*
+
     if (tRaw !== t) {
         console.log(`🔧 [CLAMP] tRaw=${tRaw.toFixed(3)} → t=${t.toFixed(3)}`)
     }
-*/
+
     const projX = t * x2
     const projY = t * y2
 
@@ -978,18 +979,18 @@ function pointToSegmentDistance(lat, lon, lat1, lon1, lat2, lon2) {
         console.warn(`⚠️ [LARGE DIST] ${dist.toFixed(1)} m`)
     }
 
-    //console.log(`📏 [DIST RESULT] ${dist.toFixed(2)} m`)
+    console.log(`📏 [DIST RESULT] ${dist.toFixed(2)} m`)
     return dist
 }
 
 function checkShoreline(lat, lon) {
 
-    //console.log(`🌍 [CHECK] lat=${lat}, lon=${lon}`)
+    console.log(`🌍 [CHECK] lat=${lat}, lon=${lon}`)
 
     const baseLat = Math.floor(lat)
     const baseLon = Math.floor(lon)
 
-    //console.log(`🧭 [BASE TILE] ${baseLat}_${baseLon}`)
+    console.log(`🧭 [BASE TILE] ${baseLat}_${baseLon}`)
 
     let tilesChecked = 0
     let landChecks = 0
@@ -1001,13 +1002,13 @@ function checkShoreline(lat, lon) {
         for (let dLon = -1; dLon <= 1; dLon++) {
 
             const key = (baseLat + dLat) + "_" + (baseLon + dLon)
-            //console.log(`📦 [TILE] Checking ${key}`)
+            console.log(`📦 [TILE] Checking ${key}`)
 
             const tile = loadShorelineTile(key)
             tilesChecked++
 
             if (!tile) {
-                //console.log(`⛔ [TILE EMPTY] ${key}`)
+                console.log(`⛔ [TILE EMPTY] ${key}`)
                 continue
             }
 
@@ -1016,7 +1017,7 @@ function checkShoreline(lat, lon) {
                 continue
             }
 
-            //console.log(`📊 [TILE DATA] land=${tile.land.length}, coast=${tile.coast.length}`)
+            console.log(`📊 [TILE DATA] land=${tile.land.length}, coast=${tile.coast.length}`)
 
             // ===== 1️⃣ LAND POLYGONS =====
             for (const poly of tile.land) {
@@ -1029,7 +1030,7 @@ function checkShoreline(lat, lon) {
                     continue
                 }
 
-                //console.log(`🏝️ [LAND BBOX HIT]`)
+                console.log(`🏝️ [LAND BBOX HIT]`)
 
                 if (!poly.poly) {
                     console.warn(`⚠️ [BAD POLY FORMAT] missing poly field`)
@@ -1037,7 +1038,7 @@ function checkShoreline(lat, lon) {
                 }
 
                 if (pointInPolygon(lat, lon, poly.poly)) {
-                    //console.log(`✅ [LAND HIT]`)
+                    console.log(`✅ [LAND HIT]`)
                     return 1
                 }
             }
@@ -1052,7 +1053,7 @@ function checkShoreline(lat, lon) {
                     lon < coast.minLon || lon > coast.maxLon
                 ) continue
 
-                //console.log(`🌊 [COAST BBOX HIT]`)
+                console.log(`🌊 [COAST BBOX HIT]`)
 
                 const pts = coast.points
 
@@ -1076,7 +1077,7 @@ function checkShoreline(lat, lon) {
 
                     segmentsTested++
 
-                    //console.log(`🔍 [SEGMENT TEST] (${lat1},${lon1}) → (${lat2},${lon2})`)
+                    console.log(`🔍 [SEGMENT TEST] (${lat1},${lon1}) → (${lat2},${lon2})`)
 
                     const d = pointToSegmentDistance(
                         lat, lon,
@@ -1085,7 +1086,7 @@ function checkShoreline(lat, lon) {
                     )
 
                     if (d <= 6) {
-                        //console.log(`✅ [COAST HIT] distance=${d.toFixed(2)}m`)
+                        console.log(`✅ [COAST HIT] distance=${d.toFixed(2)}m`)
                         return 1
                     }
                 }
@@ -1093,7 +1094,7 @@ function checkShoreline(lat, lon) {
         }
     }
 
-    //console.log(`❌ [NO HIT] tiles=${tilesChecked}, landChecks=${landChecks}, coastChecks=${coastChecks}, segments=${segmentsTested}`)
+    console.log(`❌ [NO HIT] tiles=${tilesChecked}, landChecks=${landChecks}, coastChecks=${coastChecks}, segments=${segmentsTested}`)
     return 0
 }
 
@@ -1171,14 +1172,14 @@ function pointToSegmentDistanceQuiet(lat, lon, lat1, lon1, lat2, lon2) {
 
 async function getDepthFromDb(lat, lon, reqId = "noid") {
   const pointWkt = makePointWkt(lat, lon);
-/*
+
   console.log(
     `🧭 [${reqId}] DB DEPTH START lat=${lat} lon=${lon} ` +
     `DEPTH_RADIUS_M=${DEPTH_RADIUS_M}m ` +
     `ENC_CANDIDATE_RADIUS_M=${ENC_CANDIDATE_RADIUS_M}m ` +
     `DEPARE_RADIUS_M=${DEPARE_RADIUS_M}m`
    );
-*/
+
   // ==================================================
   // 1. Exact ENC sounding search within DEPTH_RADIUS_M
   // ==================================================
@@ -1188,7 +1189,7 @@ async function getDepthFromDb(lat, lon, reqId = "noid") {
   let exactRows = [];
 
   try {
-    //console.log(`🧭 [${reqId}] DB exact ENC query start radius=${DEPTH_RADIUS_M}m`);
+    console.log(`🧭 [${reqId}] DB exact ENC query start radius=${DEPTH_RADIUS_M}m`);
     const [rows] = await dbPool.execute(
       `
       SELECT
@@ -1229,26 +1230,26 @@ async function getDepthFromDb(lat, lon, reqId = "noid") {
     console.error("🚨 DB exact ENC sounding query error:", err);
   }
 
-  //console.log(`🧭 [${reqId}] DB exact ENC candidates=${exactRows.length}`);
+  console.log(`🧭 [${reqId}] DB exact ENC candidates=${exactRows.length}`);
   for (const row of exactRows) {
-    /*console.log(
+    console.log(
       `   EXACT ENC id=${row.id} depth=${row.depth} ` +
       `lat=${row.lat} lon=${row.lon} ` +
       `dist=${Number(row.distance_m).toFixed(2)}m`
     );
-	*/
+	
   }
 
   if (exactRows.length > 0) {
     const row = exactRows[0];
 
-    /*console.log(
+    console.log(
       `🧭 [${reqId}] DB DEPTH SELECTED source=exact_enc_sounding ` +
       `id=${row.id} depth=${row.depth} ` +
       `distance=${Number(row.distance_m).toFixed(2)}m ` +
       `lat=${row.lat} lon=${row.lon}`
     );
-*/
+
     return Number(row.depth);
    }
   // ==================================================
@@ -1267,7 +1268,7 @@ async function getDepthFromDb(lat, lon, reqId = "noid") {
   let candidateRows = [];
 
   try {
-    //console.log(`🧭 [${reqId}] DB candidate ENC query start radius=${ENC_CANDIDATE_RADIUS_M}m`);
+    console.log(`🧭 [${reqId}] DB candidate ENC query start radius=${ENC_CANDIDATE_RADIUS_M}m`);
     const [rows] = await dbPool.execute(
       `
       SELECT
@@ -1308,14 +1309,14 @@ async function getDepthFromDb(lat, lon, reqId = "noid") {
     console.error("🚨 DB candidate ENC sounding query error:", err);
   }
 
-  //console.log(`🧭 [${reqId}] DB candidate ENC candidates=${candidateRows.length}`);
+  console.log(`🧭 [${reqId}] DB candidate ENC candidates=${candidateRows.length}`);
   for (const row of candidateRows) {
-    /*console.log(
+    console.log(
       `   CANDIDATE ENC id=${row.id} depth=${row.depth} ` +
       `lat=${row.lat} lon=${row.lon} ` +
       `dist=${Number(row.distance_m).toFixed(2)}m`
     );
-	*/
+	
   }
 
 let closestRejectedCandidate = null;
@@ -1332,13 +1333,13 @@ if (candidateRows.length > 0) {
 const usableContours = contours.filter(contourHasValidDepth);
 const ignoredContours = contours.length - usableContours.length;
 
-/*
+
 console.log(
   `🧭 [${reqId}] DB DEPCNT contour check start ` +
   `contours=${contours.length} usable=${usableContours.length} ` +
   `ignored_no_depth=${ignoredContours} tile=${tileKey(lat, lon)}`
 );
-*/
+
   for (let i = 0; i < candidateRows.length; i++) {
     const row = candidateRows[i];
 
@@ -1349,42 +1350,42 @@ console.log(
     };
 
     const { count } = countContourCrossings([P, S], usableContours, S.depth);
-    /*
+    
 	console.log(
       `🧭 [${reqId}] DB CONTOUR CHECK candidate#${i + 1} ` +
       `id=${row.id} depth=${row.depth} ` +
       `distance=${Number(row.distance_m).toFixed(2)}m ` +
       `crossings=${count}`
     );
-*/
+
     if (count !== 0) {
-     /* console.log(
+      console.log(
         `🧭 [${reqId}] DB CANDIDATE REJECTED contour_crossing ` +
         `id=${row.id} depth=${row.depth}`
       );
-	  */
+	  
       continue;
     }
-/*
+
     console.log(
       `🧭 [${reqId}] DB DEPTH SELECTED source=candidate_enc_sounding_contour_checked ` +
       `id=${row.id} depth=${row.depth} ` +
       `distance=${Number(row.distance_m).toFixed(2)}m ` +
       `lat=${row.lat} lon=${row.lon}`
     );
-*/
+
     return Number(row.depth);
   }
-/*
+
   console.log(
     `🧭 [${reqId}] DB all candidate ENC soundings rejected by contour check. Trying DEPARE...`
   );
-*/
+
 }
   // ==================================================
   // 3. DEPARE fallback
   // ==================================================
-  //console.log("⚠️ No ENC candidate found. Trying DEPARE...");
+  console.log("⚠️ No ENC candidate found. Trying DEPARE...");
 
   const depareLatDelta = metersToLatDelta(DEPARE_RADIUS_M);
   const depareLonDelta = metersToLonDelta(DEPARE_RADIUS_M, lat);
@@ -1392,7 +1393,7 @@ console.log(
   let depareRows = [];
 
   try {
-    //console.log(`🧭 [${reqId}] DB DEPARE query start radius=${DEPARE_RADIUS_M}m`);
+    console.log(`🧭 [${reqId}] DB DEPARE query start radius=${DEPARE_RADIUS_M}m`);
     const [rows] = await dbPool.execute(
       `
       SELECT
@@ -1434,42 +1435,42 @@ console.log(
     console.error("🚨 DB DEPARE query error:", err);
   }
 
-  //console.log(`🧭 [${reqId}] DB DEPARE candidates=${depareRows.length}`);
+  console.log(`🧭 [${reqId}] DB DEPARE candidates=${depareRows.length}`);
   for (const row of depareRows) {
-    /*console.log(
+    console.log(
       `   DEPARE id=${row.id} drval1=${row.drval1} drval2=${row.drval2} ` +
       `lat=${row.lat} lon=${row.lon} ` +
       `dist=${Number(row.distance_m).toFixed(2)}m`
     );
-	*/
+	
   }
 
   if (depareRows.length > 0 && depareRows[0].drval1 != null) {
     const row = depareRows[0];
 
-    /*console.log(
+    console.log(
       `🧭 [${reqId}] DB DEPTH SELECTED source=depare ` +
       `id=${row.id} depth=${row.drval1} drval2=${row.drval2} ` +
       `distance=${Number(row.distance_m).toFixed(2)}m ` +
       `lat=${row.lat} lon=${row.lon}`
     );
-	*/
+	
 
     return Number(row.drval1);
   }
 if (closestRejectedCandidate) {
-  /*console.log(
+  console.log(
     `🧭 [${reqId}] DB DEPTH FALLBACK source=nearest_enc_sounding_after_all_contours_rejected ` +
     `id=${closestRejectedCandidate.id} depth=${closestRejectedCandidate.depth} ` +
     `distance=${Number(closestRejectedCandidate.distance_m).toFixed(2)}m ` +
     `lat=${closestRejectedCandidate.lat} lon=${closestRejectedCandidate.lon}`
   );
-  */
+  
 
   return Number(closestRejectedCandidate.depth);
 }
 
-//console.log(`🧭 [${reqId}] DB depth not found. Returning 1000.`);
+console.log(`🧭 [${reqId}] DB depth not found. Returning 1000.`);
 return 1000;
 }
 async function getObstacleFromDb(lat, lon) {
@@ -1477,7 +1478,7 @@ async function getObstacleFromDb(lat, lon) {
     const latDelta = metersToLatDelta(OBSTACLE_RADIUS_M)
     const lonDelta = metersToLonDelta(OBSTACLE_RADIUS_M, lat)
 
-    //console.log(`🚧 DB OBSTACLE START lat=${lat} lon=${lon} radius=${OBSTACLE_RADIUS_M}m`)
+    console.log(`🚧 DB OBSTACLE START lat=${lat} lon=${lon} radius=${OBSTACLE_RADIUS_M}m`)
 
     const [rows] = await dbPool.execute(
         `
@@ -1510,12 +1511,12 @@ async function getObstacleFromDb(lat, lon) {
     )
 
     if (rows.length === 0) {
-        //console.log("❌ DB obstacle not found")
+        console.log("❌ DB obstacle not found")
         return null
     }
 
     const row = rows[0]
-    //console.log(`✅ DB obstacle=${row.obj_type} dist=${Number(row.distance_m).toFixed(2)}m`)
+    console.log(`✅ DB obstacle=${row.obj_type} dist=${Number(row.distance_m).toFixed(2)}m`)
 
     return {
         type: row.obj_type,
@@ -1533,10 +1534,10 @@ async function getObstacleFromDb(lat, lon) {
 async function getShorelineFromDb(lat, lon) {
   const pointWkt = makePointWkt(lat, lon);
 
-  /*console.log(
+  console.log(
     `🌊 DB SHORELINE START lat=${lat} lon=${lon} radius=${SHORELINE_RADIUS_M}m`
   );
-  */
+  
 
   // ==================================================
   // 1. Check if point is inside land polygon
@@ -1562,7 +1563,7 @@ async function getShorelineFromDb(lat, lon) {
     );
 
     if (landRows.length > 0) {
-      //console.log("✅ DB shoreline land hit");
+      console.log("✅ DB shoreline land hit");
       return 1;
     }
   } catch (err) {
@@ -1591,7 +1592,7 @@ async function getShorelineFromDb(lat, lon) {
     `${minLon} ${minLat}` +
     `))`;
 
-  //console.log("🌊 DB shoreline bbox:", bboxWkt);
+  console.log("🌊 DB shoreline bbox:", bboxWkt);
 
   let coastRows = [];
 
@@ -1617,7 +1618,7 @@ async function getShorelineFromDb(lat, lon) {
     return 0;
   }
 
-  //console.log(`🌊 DB shoreline coast candidates=${coastRows.length}`);
+  console.log(`🌊 DB shoreline coast candidates=${coastRows.length}`);
 
   let closestDistance = Infinity;
 
@@ -1645,18 +1646,20 @@ async function getShorelineFromDb(lat, lon) {
       }
 
       if (d <= SHORELINE_RADIUS_M) {
-        //console.log(`✅ DB shoreline coast hit dist=${d.toFixed(2)}m`);
+        console.log(`✅ DB shoreline coast hit dist=${d.toFixed(2)}m`);
         return 1;
       }
     }
   }
 
-  /*console.log(
-    `❌ DB shoreline not found. candidates=${coastRows.length} closest=${
-      Number.isFinite(closestDistance) ? closestDistance.toFixed(2) : "none"
-    }m`
-  );
-*/
+console.log(
+  `❌ DB shoreline not found. candidates=${coastRows?.length ?? 0} closest=${
+    Number.isFinite(closestDistance)
+      ? `${closestDistance.toFixed(2)}m`
+      : "none"
+  }`
+);
+
   return 0;
 }
 
@@ -1665,7 +1668,7 @@ async function getShorelineFromDb(lat, lon) {
 /////////////////////////////////
 // ✅ Correct way to initialize OpenAI
 app.use((req, res, next) => {
-    //console.log(`${req.method} ${req.url}`);
+    console.log(`${req.method} ${req.url}`);
     next();
 });
 
@@ -1690,11 +1693,11 @@ function getSoundings(lat, lon) {
     const data = JSON.parse(fs.readFileSync(file, "utf-8"))
 
     soundingCache[key] = data
-    //console.log(`📦 Soundings loaded: ${key}, count=${data.length}`)
+    console.log(`📦 Soundings loaded: ${key}, count=${data.length}`)
 
     return data
   } catch (err) {
-    //console.log(`❌ No sounding tile: ${key}`)
+    console.log(`❌ No sounding tile: ${key}`)
     soundingCache[key] = []
     return []
   }
@@ -1727,19 +1730,23 @@ const file = `${ENC_ROOT}/depcnt_tiles/${key}.json`
 
     contourCache[key] = data
 
-    //console.log(`📦 Contours loaded: ${key}, count=${data.length}`)
+    console.log(`📦 Contours loaded: ${key}, count=${data.length}`)
 
     return data
 
   } catch (err) {
-    //console.log(`❌ No contour tile: ${key}`)
+    console.log(`❌ No contour tile: ${key}`)
     contourCache[key] = []
     return []
   }
 }
 //////////////////////////////////////////////////
-app.get("/depth", depthLimiter, (req, res) => {
-
+  app.get("/depth", depthLimiter, (req, res) => {
+    if (queue.length >= MAX_QUEUE) {
+        return res.status(503).json({
+            error: "Server busy, please try again shortly."
+        });
+    }
   queue.push(async () => {
 
     try {
@@ -1755,8 +1762,8 @@ app.get("/depth", depthLimiter, (req, res) => {
         return res.status(400).json({ error: "Invalid lat/lon" })
       }
       const reqId = Math.random().toString(36).slice(2, 8);
-      //console.log(`🧭 [${reqId}] DEPTH REQUEST lat=${lat} lon=${lon}`);
-/*
+      console.log(`🧭 [${reqId}] DEPTH REQUEST lat=${lat} lon=${lon}`);
+
       console.log(`\n==============================`)
       console.log(`📡 DB /depth request lat=${lat} lon=${lon}`)
       console.log(`DEPTH_RADIUS_M=${DEPTH_RADIUS_M}`);
@@ -1765,7 +1772,7 @@ app.get("/depth", depthLimiter, (req, res) => {
       console.log(`OBSTACLE_RADIUS_M=${OBSTACLE_RADIUS_M}`);
       console.log(`SHORELINE_RADIUS_M=${SHORELINE_RADIUS_M}`);
       console.log(`==============================`)
-*/
+
 	  const [depth, obstacle, shoreline] = await Promise.all([
 	 	 getDepthFromDb(lat, lon, reqId),
 	 	 getObstacleFromDb(lat, lon),
@@ -1773,7 +1780,7 @@ app.get("/depth", depthLimiter, (req, res) => {
 	  ]);
 	  
       const response = { depth, obstacle, shoreline }
-      //console.log(`🧭 [${reqId}] ✅ DB RESPONSE`, response);
+      console.log(`🧭 [${reqId}] ✅ DB RESPONSE`, response);
       res.json(response)
 
     } catch (err) {
@@ -1803,7 +1810,7 @@ function checkOrigin(req, res, next) {
     const origin = req.headers.origin
 
     if (!origin || !allowed.includes(origin)) {
-        //console.log("Blocked origin:", origin)
+        console.log("Blocked origin:", origin)
         return res.status(403).json({ error: "Forbidden" })
     }
 
